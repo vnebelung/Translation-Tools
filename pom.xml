@@ -33,7 +33,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>main.ProDisFuzz</mainClass>
+                            <mainClass>main.TranslationTools</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
