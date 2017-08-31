@@ -38,7 +38,7 @@ class GroupCreator {
      * @throws IOException if an I/O error occurs
      */
     void create(Path folder) throws IOException {
-        Set<SortedSet<Integer>> groups = new HashSet<>();
+        SortedSet<SortedSet<Integer>> groups = new TreeSet<>(Comparator.comparingInt(SortedSet::first));
         // Go on until idsToDialogs is empty
         while (!idsToDialogs.isEmpty()) {
             // Take the first key and construct its group
