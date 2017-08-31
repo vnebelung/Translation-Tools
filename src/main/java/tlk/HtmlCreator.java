@@ -354,7 +354,7 @@ class HtmlCreator {
 
                     // Create a span element with the REPLY child anchor ID
                     Element replyLink = document.createElement("span");
-                    replyLink.setAttribute("id", "#id" + eachChild);
+                    replyLink.setAttribute("id", "id" + eachChild);
                     replyLink.setAttribute("class", "idlink");
                     replyLink.appendChild(document.createTextNode("#" + eachChild));
                     reply.appendChild(replyLink);
