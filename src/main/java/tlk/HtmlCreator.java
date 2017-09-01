@@ -47,7 +47,6 @@ class HtmlCreator {
         this.idsToDialogs = idsToDialogs;
     }
 
-
     /**
      * Creates the DOM structure and writes it into an HTML file in the given folder.
      *
@@ -152,7 +151,8 @@ class HtmlCreator {
         Source input = new DOMSource(document);
         transformer.transform(input, output);
 
-        System.out.println("HTML written to '" + folder.resolve("DialogOverview.html").toAbsolutePath().toString() + "/'");
+        System.out.println(
+                "HTML written to '" + folder.resolve("DialogOverview.html").toAbsolutePath().toString() + "/'");
     }
 
     /**
@@ -163,6 +163,7 @@ class HtmlCreator {
      */
     private Element buildBody(Document document) {
         Element result = document.createElement("body");
+        result.setAttribute("onload", "init();");
 
         Element h1 = document.createElement("h1");
         h1.appendChild(document.createTextNode("SOD: Dialog/Journal Structure"));
@@ -176,6 +177,16 @@ class HtmlCreator {
         Element information2 = document.createElement("p");
         information2.appendChild(document.createTextNode("Created on: " + Instant.now()));
         result.appendChild(information2);
+
+        Element searchDiv = document.createElement("div");
+        searchDiv.setAttribute("id", "search");
+        result.appendChild(searchDiv);
+
+        Element searchInput = document.createElement("input");
+        searchInput.setAttribute("id", "input");
+        searchInput.setAttribute("type", "text");
+        searchInput.setAttribute("placeholder", "Jump to string ID");
+        searchDiv.appendChild(searchInput);
 
         Element h2example = document.createElement("h2");
         h2example.appendChild(document.createTextNode("Example"));
@@ -467,6 +478,13 @@ class HtmlCreator {
         title.appendChild(document.createTextNode("SOD Translation Helper"));
         result.appendChild(title);
 
+        Element script = document.createElement("script");
+        script.appendChild(document.createTextNode(
+                "function init() { var input = document.getElementById('input'); input" +
+                        ".addEventListener('keypress', function(e) { if (e.keyCode == 13) { window.location.href = " +
+                        "'#id' + document.getElementById('input').value; } } ); }"));
+        result.appendChild(script);
+
         Element style = document.createElement("style");
         style.setAttribute("type", "text/css");
         StringBuilder styles = new StringBuilder();
@@ -507,6 +525,11 @@ class HtmlCreator {
         styles.append(
                 "p#example span.reply, p#example span.reply + span.text, p#example span.journal + span.text + span" +
                         ".lineno { padding-top: 0.5em; }\n");
+        styles.append("div#search { position: fixed; left: 1em; bottom: 1em; width: 10em; }\n");
+        styles.append(
+                "input#input { background-color: rgb(39, 40, 34); color: rgb(142, 137, 113); border: 1px solid rgb" +
+                        "(99, 95, 79); border-radius: 0.2em; font-family: 'latin_modern_roman10_regular'; font-size: " +
+                        "1em; box-shadow: 0 0 0.8em 0.4em rgb(39, 40, 34, 0.75); padding: 0.1em; }");
         style.appendChild(document.createTextNode(styles.toString()));
         result.appendChild(style);
 
