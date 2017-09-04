@@ -38,7 +38,17 @@ class GroupCreator {
      * @throws IOException if an I/O error occurs
      */
     void create(Path folder) throws IOException {
-        SortedSet<SortedSet<Integer>> groups = new TreeSet<>(Comparator.comparingInt(SortedSet::first));
+        SortedSet<Set<Integer>> groups = new TreeSet<>((o1, o2) -> {
+            int min1 = Integer.MAX_VALUE;
+            for (int each : o1) {
+                min1 = Math.min(min1, each);
+            }
+            int min2 = Integer.MAX_VALUE;
+            for (int each : o2) {
+                min2 = Math.min(min2, each);
+            }
+            return min1 - min2;
+        });
         // Go on until idsToDialogs is empty
         while (!idsToDialogs.isEmpty()) {
             // Take the first key and construct its group
@@ -58,7 +68,7 @@ class GroupCreator {
      * @param folder the output folder
      * @throws IOException if an I/O error occurs
      */
-    private void writeSetsToFile(Set<SortedSet<Integer>> groups, Path folder) throws IOException {
+    private void writeSetsToFile(SortedSet<Set<Integer>> groups, Path folder) throws IOException {
         // Delete the old file and create a new one
         Files.deleteIfExists(folder.resolve("DialogSets.txt"));
         Path file = Files.createFile(folder.resolve("DialogSets.txt"));
@@ -66,7 +76,7 @@ class GroupCreator {
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file)) {
             int count = 1;
             // Lopp through every group
-            for (SortedSet<Integer> eachGroup : groups) {
+            for (Set<Integer> eachGroup : groups) {
                 bufferedWriter.newLine();
                 bufferedWriter.write("// Group " + count + ", " + eachGroup.size() + " strings");
                 count++;
@@ -93,10 +103,8 @@ class GroupCreator {
      * @param id the string ID which's parents and children will be
      * @return the group of strings containing the given ID and all the children and parents IDs.
      */
-    private SortedSet<Integer> createGroup(int id) {
-        SortedSet<Integer> result = new TreeSet<>();
-        // Add this string ID to the returned group
-        result.add(id);
+    private Set<Integer> createGroup(int id) {
+        Set<Integer> result = new LinkedHashSet<>();
         // Remove the added ID from the map that it will not be analyzed again
         DialogString dialogString = idsToDialogs.remove(id);
         // If the id is somehow not existent in the map, return an empty set
@@ -107,6 +115,8 @@ class GroupCreator {
         for (int each : dialogString.getParents()) {
             result.addAll(createGroup(each));
         }
+        // Add this string ID to the returned group
+        result.add(id);
         // Analyze all children of the string ID
         for (int each : dialogString.getChildren()) {
             result.addAll(createGroup(each));
