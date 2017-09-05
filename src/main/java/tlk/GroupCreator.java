@@ -38,17 +38,7 @@ class GroupCreator {
      * @throws IOException if an I/O error occurs
      */
     void create(Path folder) throws IOException {
-        SortedSet<Set<Integer>> groups = new TreeSet<>((o1, o2) -> {
-            int min1 = Integer.MAX_VALUE;
-            for (int each : o1) {
-                min1 = Math.min(min1, each);
-            }
-            int min2 = Integer.MAX_VALUE;
-            for (int each : o2) {
-                min2 = Math.min(min2, each);
-            }
-            return min1 - min2;
-        });
+        SortedSet<Set<Integer>> groups = new TreeSet<>(Comparator.comparingInt(Collections::min));
         // Go on until idsToDialogs is empty
         while (!idsToDialogs.isEmpty()) {
             // Take the first key and construct its group
