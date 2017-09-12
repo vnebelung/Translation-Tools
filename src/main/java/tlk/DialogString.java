@@ -18,6 +18,7 @@ public class DialogString implements Comparable<DialogString> {
 
     private static int counter = 0;
     private int id;
+    private String filename;
     private String text;
     private Type type;
     private Set<Integer> children = new LinkedHashSet<>();
@@ -29,25 +30,28 @@ public class DialogString implements Comparable<DialogString> {
      * for class internal reasons so that different instances of this class containing the same text can be
      * distinguished from each other.
      *
-     * @param text the string text
-     * @param type the string type
-     * @param id   the internal id
+     * @param text     the string text
+     * @param type     the string type
+     * @param id       the internal id
+     * @param filename the file's name which contains the string
      */
-    private DialogString(String text, Type type, int id) {
+    private DialogString(String text, Type type, int id, String filename) {
         this.text = text;
         this.type = type;
         this.id = id;
+        this.filename = filename;
     }
 
     /**
-     * Constructs a new dialog string with a given text and type.
+     * Constructs a new dialog string with a given text and type that is contained in the file with the given name.
      *
-     * @param text the string text
-     * @param type the string type
+     * @param text     the string text
+     * @param type     the string type
+     * @param filename the file's name which contains the string
      * @return the constructed dialog string
      */
-    static DialogString create(String text, Type type) {
-        DialogString result = new DialogString(text, type, counter);
+    static DialogString create(String text, Type type, String filename) {
+        DialogString result = new DialogString(text, type, counter, filename);
         counter++;
         return result;
     }
@@ -107,12 +111,13 @@ public class DialogString implements Comparable<DialogString> {
     }
 
     /**
-     * Returns the text of this dialog string.
+     * Returns the text of this dialog string. If the given filename is not equal to the filename of this dialog string,
+     * the filename of this string is prepended to the returned text.
      *
      * @return the text
      */
-    String getText() {
-        return text;
+    String getText(String filename) {
+        return this.filename.equals(filename) ? text : this.filename + ": " + text;
     }
 
     /**
@@ -160,6 +165,15 @@ public class DialogString implements Comparable<DialogString> {
      */
     Type getType() {
         return type;
+    }
+
+    /**
+     * Returns the filename of the file that contains this dialog string.
+     *
+     * @return the filename
+     */
+    String getFilename() {
+        return filename;
     }
 
     enum Type {DIALOG, JOURNAL, ERROR}

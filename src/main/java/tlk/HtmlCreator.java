@@ -233,10 +233,6 @@ class HtmlCreator {
 
         // For every TLK file create its dialog blocks
         for (Map.Entry<String, List<Integer>> each : filenamesToIds.entrySet()) {
-            Element h2 = document.createElement("h2");
-            h2.appendChild(document.createTextNode("// File " + each.getKey() + ".d"));
-            result.appendChild(h2);
-
             result.appendChild(buildBlocks(document, each.getKey(), each.getValue()));
         }
 
@@ -260,6 +256,10 @@ class HtmlCreator {
 
         // For every string ID of a SAY string create a dialog block
         for (Integer each : sayIds) {
+            Element h2 = document.createElement("h2");
+            h2.appendChild(document.createTextNode("// File " + file + ".d"));
+            result.appendChild(h2);
+
             result.appendChild(buildBlock(document, each));
         }
 
@@ -276,6 +276,8 @@ class HtmlCreator {
      * @return a p element containing the string IDs of the dialog block
      */
     private Element buildBlock(Document document, int sayId) {
+        String sayFilename = idsToDialogs.get(sayId).getFilename();
+
         Element result = document.createElement("p");
         result.setAttribute("class", "block");
 
@@ -299,7 +301,7 @@ class HtmlCreator {
             parentText.setAttribute("class", "supporttext");
             result.appendChild(parentText);
 
-            parentText.appendChild(document.createTextNode("▾ " + idsToDialogs.get(each).getText()));
+            parentText.appendChild(document.createTextNode("▾ " + idsToDialogs.get(each).getText(sayFilename)));
         }
 
         // Create a span element with the reference string ID
@@ -319,7 +321,7 @@ class HtmlCreator {
         // Create a span element with the reference text
         Element sayText = document.createElement("span");
         sayText.setAttribute("class", "text");
-        sayText.appendChild(document.createTextNode(idsToDialogs.get(sayId).getText()));
+        sayText.appendChild(document.createTextNode(idsToDialogs.get(sayId).getText(sayFilename)));
         result.appendChild(sayText);
 
         // Create every child of the reference SAY string
@@ -352,8 +354,8 @@ class HtmlCreator {
                         // Create a span element with the parent's text
                         Element replyParentText = document.createElement("span");
                         replyParentText.setAttribute("class", "supporttext");
-                        replyParentText
-                                .appendChild(document.createTextNode("▾ " + idsToDialogs.get(eachParent).getText()));
+                        replyParentText.appendChild(
+                                document.createTextNode("▾ " + idsToDialogs.get(eachParent).getText(sayFilename)));
                         result.appendChild(replyParentText);
                     }
 
@@ -373,7 +375,7 @@ class HtmlCreator {
                     // Create a span element with the reference text
                     Element replyText = document.createElement("span");
                     replyText.setAttribute("class", "text");
-                    replyText.appendChild(document.createTextNode(idsToDialogs.get(eachChild).getText()));
+                    replyText.appendChild(document.createTextNode(idsToDialogs.get(eachChild).getText(sayFilename)));
                     result.appendChild(replyText);
 
                     // Create every child of the REPLY child string
@@ -395,7 +397,7 @@ class HtmlCreator {
                         Element replyChildText = document.createElement("span");
                         replyChildText.setAttribute("class", "supporttext");
                         replyChildText.appendChild(
-                                document.createTextNode("▸ " + idsToDialogs.get(eachGrandchild).getText()));
+                                document.createTextNode("▸ " + idsToDialogs.get(eachGrandchild).getText(sayFilename)));
                         result.appendChild(replyChildText);
                     }
 
@@ -423,8 +425,8 @@ class HtmlCreator {
                         // Create a span element with the parent's text
                         Element journalParentText = document.createElement("span");
                         journalParentText.setAttribute("class", "supporttext");
-                        journalParentText
-                                .appendChild(document.createTextNode("▾ " + idsToDialogs.get(eachParent).getText()));
+                        journalParentText.appendChild(
+                                document.createTextNode("▾ " + idsToDialogs.get(eachParent).getText(sayFilename)));
                         result.appendChild(journalParentText);
                     }
 
@@ -443,7 +445,7 @@ class HtmlCreator {
                     // Create a span element with the reference text
                     Element journalText = document.createElement("span");
                     journalText.setAttribute("class", "text");
-                    journalText.appendChild(document.createTextNode(idsToDialogs.get(eachChild).getText()));
+                    journalText.appendChild(document.createTextNode(idsToDialogs.get(eachChild).getText(sayFilename)));
                     result.appendChild(journalText);
                     break;
                 // If the child is of type ERROR, it is an erroneous string

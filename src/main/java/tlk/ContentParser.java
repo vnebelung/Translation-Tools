@@ -118,7 +118,7 @@ class ContentParser {
         int id = Integer.valueOf(sayMatcher.group(1));
         String internalId = blockId;
         // Parse the corresponding string text
-        DialogString dialogString = DialogString.create(sayMatcher.group(2), DialogString.Type.DIALOG);
+        DialogString dialogString = DialogString.create(sayMatcher.group(2), DialogString.Type.DIALOG, filename);
         // Store the SAY string with its IDs
         idsToDialogs.put(id, dialogString);
         internalIdsToIds.put(internalId, id);
@@ -131,7 +131,7 @@ class ContentParser {
             id = Integer.valueOf(replyMatcher.group(1));
             internalId = blockId + '.' + i;
             // Parse the corresponding string text
-            dialogString = DialogString.create(replyMatcher.group(2), DialogString.Type.DIALOG);
+            dialogString = DialogString.create(replyMatcher.group(2), DialogString.Type.DIALOG, filename);
             // Store the REPLY string with its IDs
             idsToDialogs.put(id, dialogString);
             internalIdsToIds.put(internalId, id);
@@ -147,7 +147,8 @@ class ContentParser {
             id = Integer.valueOf(addJournalEntryMatcher.group(1));
             internalId = blockId + ".Journal." + i;
             // Parse the corresponding string text
-            dialogString = DialogString.create("** No text specified in TLK file **", DialogString.Type.JOURNAL);
+            dialogString =
+                    DialogString.create("** No text specified in TLK file **", DialogString.Type.JOURNAL, filename);
             i++;
             // Store the ADDJOURNALENTRY string with its IDs
             idsToDialogs.put(id, dialogString);
@@ -160,7 +161,7 @@ class ContentParser {
             id = Integer.valueOf(journalMatcher.group(1));
             internalId = blockId + ".Journal." + i;
             // Parse the corresponding string text
-            dialogString = DialogString.create(journalMatcher.group(2), DialogString.Type.JOURNAL);
+            dialogString = DialogString.create(journalMatcher.group(2), DialogString.Type.JOURNAL, filename);
             i++;
             // Store the JOURNAL string with its IDs
             idsToDialogs.put(id, dialogString);

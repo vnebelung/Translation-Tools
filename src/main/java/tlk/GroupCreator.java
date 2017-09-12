@@ -65,7 +65,7 @@ class GroupCreator {
 
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file)) {
             int count = 1;
-            // Lopp through every group
+            // Loop through every group
             for (Set<Integer> eachGroup : groups) {
                 bufferedWriter.newLine();
                 bufferedWriter.write("// Group " + count + ", " + eachGroup.size() + " strings");

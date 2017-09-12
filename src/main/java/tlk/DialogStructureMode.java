@@ -130,7 +130,7 @@ public class DialogStructureMode implements IMode {
      * Creates a default entry in the id/dialog map used for erroneous structures during parsing
      */
     private void prepareMappings() {
-        idsToDialogs.put(-1, DialogString.create("INVALID REFERENCE", DialogString.Type.ERROR));
+        idsToDialogs.put(-1, DialogString.create("INVALID REFERENCE", DialogString.Type.ERROR, ""));
     }
 
     /**
