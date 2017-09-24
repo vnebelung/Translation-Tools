@@ -107,6 +107,8 @@ class GroupCreator {
         }
         // Add this string ID to the returned group
         result.add(id);
+        // Add all children of this ID to the returned group. This leads to a more breadth-first search like approach
+        result.addAll(dialogString.getChildren());
         // Analyze all children of the string ID
         for (int each : dialogString.getChildren()) {
             result.addAll(createGroup(each));
