@@ -29,11 +29,14 @@ public class DialogStructureMode implements IMode {
     /**
      * Creates a TXT document that lists groups of strings. A group of strings contains strings that are parents or
      * children of each other.
-     * @param folder the output folder that the TXT document will be written to
+     *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
+     * @param folder       the output folder that the TXT document will be written to
      * @throws IOException if an I/O error occurs
      */
-    private void createGroups(Path folder) throws IOException {
-        GroupCreator groupFinder = new GroupCreator(idsToDialogs);
+    private void createGroups(Path folder, int minInclusive, int maxInclusive) throws IOException {
+        GroupCreator groupFinder = new GroupCreator(idsToDialogs, minInclusive, maxInclusive);
         groupFinder.create(folder);
     }
 
@@ -251,6 +254,6 @@ public class DialogStructureMode implements IMode {
         // Create the HTML dialog file
         createHtml(folder);
         // Create a string group file
-        createGroups(folder);
+        createGroups(folder, rangeMinInclusive, rangeMaxInclusive);
     }
 }
