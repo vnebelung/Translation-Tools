@@ -52,8 +52,9 @@ class TranslationTools {
         modes.put("dialog", new DialogStructureMode());
 
         if (!modes.containsKey(args[0])) {
-            // If the first parameter is not a functionality defined above
-            System.out.println("usage: java -jar TranslationTools.jar [status|dialog] [options]");
+            // If the first parameter is not a mode defined above
+            System.out.println();
+            System.out.println("Usage: java -jar TranslationTools.jar [status|dialog] [options]");
             System.out.println(
                     "status  = generates or updates a graphic that visualizes the translation status of a project");
             System.out.println("dialog  = analyzes TLK files and generates dialog structure overviews");

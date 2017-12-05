@@ -46,7 +46,7 @@ class ContentParser {
      *
      * @param idsToDialogs     the map where the relations between string IDs and dialog texts are stored
      * @param internalIdsToIds the map where the relations between internal IDs and string IDs are stored
-     * @param filenamesToIds   the map where the relations between filenames and string IDs are stored
+     * @param filenamesToIds   the map where the relations between file names and string IDs are stored
      */
     ContentParser(SortedMap<Integer, DialogString> idsToDialogs, SortedMap<String, Integer> internalIdsToIds,
                   SortedMap<String, List<Integer>> filenamesToIds) {

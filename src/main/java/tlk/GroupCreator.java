@@ -7,6 +7,10 @@
 
 package tlk;
 
+import tlk.linearizer.CycleDialogLinearizer;
+import tlk.linearizer.IDialogLinearizer;
+import tlk.linearizer.NonCycleDialogLinearizer;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,9 +24,10 @@ import java.util.*;
  */
 class GroupCreator {
 
-    private final static String DIALOG_SETS_FILENAME = "DialogSets.txt";
+    public final static String OUTPUT_FILENAME = "DialogGroups.txt";
     private final int minInclusive;
     private final int maxInclusive;
+    private Map<String, IDialogLinearizer> linearizer = new HashMap<>();
     private SortedMap<Integer, DialogString> idsToDialogs;
 
     /**
@@ -34,9 +39,12 @@ class GroupCreator {
      */
     GroupCreator(SortedMap<Integer, DialogString> idsToDialogs, int minInclusive, int maxInclusive) {
         // Create a copy of idsToDialogs because it will be modified
-        this.idsToDialogs = new TreeMap<>(idsToDialogs);
+        this.idsToDialogs = idsToDialogs;
         this.minInclusive = minInclusive;
         this.maxInclusive = maxInclusive;
+
+        linearizer.put("cycle", new CycleDialogLinearizer());
+        linearizer.put("noncycle", new NonCycleDialogLinearizer());
     }
 
     /**
@@ -46,25 +54,52 @@ class GroupCreator {
      * @throws IOException if an I/O error occurs
      */
     void create(Path folder) throws IOException {
-        SortedSet<Set<Integer>> groups = new TreeSet<>(Comparator.comparingInt(Collections::min));
+        Set<Set<Integer>> groups = new TreeSet<>(Comparator.comparingInt(Collections::min));
         // Create a group that contains all string IDs that are in the parameter-defined range but not in idsToDialogs
         Set<Integer> nonDialogGroup = createNonDialogGroup();
         // Go on until idsToDialogs is empty
         while (!idsToDialogs.isEmpty()) {
             // Take the first key and construct its group
             int id = idsToDialogs.firstKey();
-            groups.add(createDialogGroup(id));
 
-            System.out.println("Group " + id + " created");
+            Map<Integer, DialogString> group = createDialogGroup(id);
+            Set<Integer> linearizedIds;
+            try {
+                linearizedIds = linearizer.get("noncycle").linearize(group);
+            } catch (IllegalArgumentException ignored) {
+                linearizedIds = linearizer.get("cycle").linearize(group);
+            }
+            groups.add(linearizedIds);
         }
         // Write the groups into a file
         writeDialogSetsToFile(groups, folder);
         // Add as the last group the non dialog IDs
         writeNonDialogStringsToFile(nonDialogGroup, folder);
-
-        System.out.println(
-                "Groups written to '" + folder.resolve(DIALOG_SETS_FILENAME).toAbsolutePath().toString() + "'");
     }
+
+    /**
+     * Creates an unsorted dialog group where all strings are somehow connected with each other.
+     *
+     * @param id the string ID to start with
+     * @return the string ID and all its parents and children
+     */
+    private Map<Integer, DialogString> createDialogGroup(int id) {
+        Map<Integer, DialogString> result = new HashMap<>();
+        DialogString dialogString = idsToDialogs.remove(id);
+        result.put(id, dialogString);
+        for (int each : dialogString.getParents()) {
+            if (idsToDialogs.containsKey(each)) {
+                result.putAll(createDialogGroup(each));
+            }
+        }
+        for (int each : dialogString.getChildren()) {
+            if (idsToDialogs.containsKey(each)) {
+                result.putAll(createDialogGroup(each));
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Writes the given group of string IDs into a TXT file to the given folder. All string IDs must not be used as part
@@ -76,7 +111,7 @@ class GroupCreator {
      */
     private void writeNonDialogStringsToFile(Set<Integer> group, Path folder) throws IOException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(
-                Files.newBufferedWriter(folder.resolve(DIALOG_SETS_FILENAME), StandardOpenOption.APPEND))) {
+                Files.newBufferedWriter(folder.resolve(OUTPUT_FILENAME), StandardOpenOption.APPEND))) {
             bufferedWriter.newLine();
             bufferedWriter.write("// Group: non dialog IDs, " + group.size() + " strings");
             bufferedWriter.newLine();
@@ -97,10 +132,10 @@ class GroupCreator {
      * @param folder the output folder
      * @throws IOException if an I/O error occurs
      */
-    private void writeDialogSetsToFile(SortedSet<Set<Integer>> groups, Path folder) throws IOException {
+    private void writeDialogSetsToFile(Set<Set<Integer>> groups, Path folder) throws IOException {
         // Delete the old file and create a new one
-        Files.deleteIfExists(folder.resolve(DIALOG_SETS_FILENAME));
-        Path file = Files.createFile(folder.resolve(DIALOG_SETS_FILENAME));
+        Files.deleteIfExists(folder.resolve(OUTPUT_FILENAME));
+        Path file = Files.createFile(folder.resolve(OUTPUT_FILENAME));
 
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file)) {
             int count = 1;
@@ -118,38 +153,6 @@ class GroupCreator {
                 }
             }
         }
-    }
-
-    /**
-     * Creates a group of string IDs, that means a set of string IDs, for a given string ID. For the given ID all its
-     * parents and children are added to this group. The parents and children are then searched for their parents and
-     * children as well. By this recursive approach a closed string group is created where all string are somehow
-     * connected with each other.
-     *
-     * @param id the string ID which's parents and children will be
-     * @return the group of strings containing the given ID and all the children and parents IDs.
-     */
-    private Set<Integer> createDialogGroup(int id) {
-        Set<Integer> result = new LinkedHashSet<>();
-        // Remove the added ID from the map that it will not be analyzed again
-        DialogString dialogString = idsToDialogs.remove(id);
-        // If the id is somehow not existent in the map, return an empty set
-        if (dialogString == null) {
-            return Collections.emptySortedSet();
-        }
-        // Analyze all parents of the string ID
-        for (int each : dialogString.getParents()) {
-            result.addAll(createDialogGroup(each));
-        }
-        // Add this string ID to the returned group
-        result.add(id);
-        // Add all children of this ID to the returned group. This leads to a more breadth-first search like approach
-        result.addAll(dialogString.getChildren());
-        // Analyze all children of the string ID
-        for (int each : dialogString.getChildren()) {
-            result.addAll(createDialogGroup(each));
-        }
-        return result;
     }
 
     /**

@@ -46,10 +46,11 @@ public class ImageMode implements IMode {
         // Check if all needed parameters are present
         Map<String, String> parametersToValues = checkParameters(parameters);
         if (parametersToValues == null) {
-            System.out.println("usage: java -jar TranslationTools.jar status -ccsv <arg> -ocsv <arg> -out <arg>");
-            System.out.println("-ccsv <arg> = the CSV file containing all strings of a project");
-            System.out.println("-ocsv <arg> = the CSV file containing all out-of-date strings of a project");
-            System.out.println("-out <arg>  = the PNG file which status visualization is updated or newly generated " +
+            System.out.println();
+            System.out.println("Usage: java -jar TranslationTools.jar status --ccsv <arg> --ocsv <arg> --out <arg>");
+            System.out.println("--ccsv <arg> = the CSV file containing all strings of a project");
+            System.out.println("--ocsv <arg> = the CSV file containing all out-of-date strings of a project");
+            System.out.println("--out <arg>  = the PNG file which status visualization is updated or newly generated " +
                     "if not already existent");
             return;
         }
@@ -88,18 +89,18 @@ public class ImageMode implements IMode {
         // Read all given parameters as key => value pairs
         Map<String, String> result = new HashMap<>((parameters.length + 1) / 2);
         for (int i = 0; i < parameters.length; i += 2) {
-            // Read key without the - char
-            String key = parameters[i].substring(1);
+            // Read key without the -- chars
+            String key = parameters[i].substring(2);
             // If value is not existent (an odd number of parameters), take an empty string
             String value = i + 1 < parameters.length ? parameters[i + 1] : "";
             result.put(key, value);
         }
 
-        // Check whether -ccsv is present
+        // Check whether --ccsv is present
         if (!result.containsKey("ccsv")) {
             return null;
         }
-        // Check whether -ccsv <arg> is not empty
+        // Check whether --ccsv <arg> is not empty
         if (result.get("ccsv").isEmpty()) {
             return null;
         }
@@ -113,11 +114,11 @@ public class ImageMode implements IMode {
             return null;
         }
 
-        // Check whether -ocsv is present
+        // Check whether --ocsv is present
         if (!result.containsKey("ocsv")) {
             return null;
         }
-        // Check whether -ocsv <arg> is not empty
+        // Check whether --ocsv <arg> is not empty
         if (result.get("ocsv").isEmpty()) {
             return null;
         }
@@ -131,11 +132,11 @@ public class ImageMode implements IMode {
             return null;
         }
 
-        // Check whether -out is present
+        // Check whether --out is present
         if (!result.containsKey("out")) {
             return null;
         }
-        // Check whether -ocsv <arg> is not empty
+        // Check whether --ocsv <arg> is not empty
         if (result.get("out").isEmpty()) {
             return null;
         }

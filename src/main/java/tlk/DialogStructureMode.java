@@ -96,15 +96,15 @@ public class DialogStructureMode implements IMode {
      * each other, so that dialog trees can be extracted.
      *
      * @param folder the input folder
-     * @param count  the total number of d files
+     * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private void parseStructure(Path folder, int count) throws IOException {
+    private void parseStructure(Path folder, int total) throws IOException {
         StructureParser structureParser = new StructureParser(idsToDialogs, internalIdsToIds);
         DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
         int i = 1;
         for (Path each : files) {
-            System.out.println("Round 2/2, File " + i + "/" + count + " " + each.getFileName());
+            System.out.printf("Parse structure %d/%d: %s%n", i, total, each.getFileName());
             structureParser.parse(each);
             i++;
         }
@@ -115,15 +115,15 @@ public class DialogStructureMode implements IMode {
      * and the corresponding string itself.
      *
      * @param folder the input folder
-     * @param count  the total number of d files
+     * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private void parseContent(Path folder, int count) throws IOException {
+    private void parseContent(Path folder, int total) throws IOException {
         ContentParser contentParser = new ContentParser(idsToDialogs, internalIdsToIds, filenamesToIds);
         DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
         int i = 1;
         for (Path each : files) {
-            System.out.println("Round 1/2, File " + i + "/" + count + " " + each.getFileName());
+            System.out.printf("Parse content %d/%d: %s%n", i, total, each.getFileName());
             contentParser.parse(each);
             i++;
         }
@@ -163,8 +163,8 @@ public class DialogStructureMode implements IMode {
         // Read all given parameters as key => value pairs
         Map<String, String> result = new HashMap<>((parameters.length + 1) / 2);
         for (int i = 0; i < parameters.length; i += 2) {
-            // Read key without the - char
-            String key = parameters[i].substring(1);
+            // Read key without the -- chars
+            String key = parameters[i].substring(2);
             // If value is not existent (an odd number of parameters), take an empty string
             String value = i + 1 < parameters.length ? parameters[i + 1] : "";
             result.put(key, value);
@@ -226,9 +226,10 @@ public class DialogStructureMode implements IMode {
         // Check if all needed parameters are present
         Map<String, String> parametersToValues = checkParameters(parameters);
         if (parametersToValues == null) {
-            System.out.println("usage: java -jar TranslationTools.jar dialog -folder <arg> -range <arg>-<arg>");
-            System.out.println("-folder <arg>      = path to the folder containing the D files");
-            System.out.println("-range <arg>-<arg> = numerical range of string IDs that should be parsed");
+            System.out.println();
+            System.out.println("Usage: java -jar TranslationTools.jar dialog --folder <arg> --range <arg>-<arg>");
+            System.out.println("--folder <arg>      = path to the folder containing the D files");
+            System.out.println("--range <arg>-<arg> = numerical range of string IDs that should be parsed");
             return;
         }
 
@@ -255,5 +256,10 @@ public class DialogStructureMode implements IMode {
         createHtml(folder);
         // Create a string group file
         createGroups(folder, rangeMinInclusive, rangeMaxInclusive);
+
+        System.out.printf("Groups written to '%s'%n",
+                folder.resolve(GroupCreator.OUTPUT_FILENAME).toAbsolutePath().toString());
+        System.out.printf("HTML written to '%s'%n",
+                folder.resolve(HtmlCreator.OUTPUT_FILENAME).toAbsolutePath().toString());
     }
 }

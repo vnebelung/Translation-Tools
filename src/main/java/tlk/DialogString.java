@@ -97,7 +97,7 @@ public class DialogString implements Comparable<DialogString> {
      *
      * @return the children's string IDs
      */
-    Set<Integer> getChildren() {
+    public Set<Integer> getChildren() {
         return children;
     }
 
@@ -106,7 +106,7 @@ public class DialogString implements Comparable<DialogString> {
      *
      * @return the parent's string IDs
      */
-    Set<Integer> getParents() {
+    public Set<Integer> getParents() {
         return parents;
     }
 

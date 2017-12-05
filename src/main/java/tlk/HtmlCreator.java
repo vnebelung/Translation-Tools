@@ -33,6 +33,7 @@ import java.util.SortedMap;
  */
 class HtmlCreator {
 
+    public final static String OUTPUT_FILENAME = "DialogOverview.html";
     private SortedMap<String, List<Integer>> filenamesToIds;
     private SortedMap<Integer, DialogString> idsToDialogs;
 
@@ -147,12 +148,9 @@ class HtmlCreator {
     private void writeToFile(Document document, Path folder) throws TransformerException {
         // Transform the DOM to an HTML file
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        Result output = new StreamResult(folder.resolve("DialogOverview.html").toFile());
+        Result output = new StreamResult(folder.resolve(OUTPUT_FILENAME).toFile());
         Source input = new DOMSource(document);
         transformer.transform(input, output);
-
-        System.out.println(
-                "HTML written to '" + folder.resolve("DialogOverview.html").toAbsolutePath().toString() + "/'");
     }
 
     /**
@@ -236,8 +234,6 @@ class HtmlCreator {
             result.appendChild(buildBlocks(document, each.getKey(), each.getValue()));
         }
 
-        System.out.println("Element body created");
-
         return result;
     }
 
@@ -255,15 +251,15 @@ class HtmlCreator {
         result.setAttribute("class", "blocks");
 
         // For every string ID of a SAY string create a dialog block
-        for (Integer each : sayIds) {
+        for (int i = 0; i < sayIds.size(); i++) {
             Element h2 = document.createElement("h2");
             h2.appendChild(document.createTextNode("// File " + file + ".d"));
             result.appendChild(h2);
 
-            result.appendChild(buildBlock(document, each));
-        }
+            result.appendChild(buildBlock(document, sayIds.get(i)));
 
-        System.out.println("Blocks for " + file + " created");
+            System.out.printf("Write HTML part %d/%d: %s%n", i + 1, sayIds.size(), file);
+        }
 
         return result;
     }
@@ -458,8 +454,6 @@ class HtmlCreator {
             }
         }
 
-        System.out.println("Block #" + sayId + " created");
-
         return result;
     }
 
@@ -534,8 +528,6 @@ class HtmlCreator {
                         "1em; box-shadow: 0 0 0.8em 0.4em rgb(39, 40, 34, 0.75); padding: 0.1em; }");
         style.appendChild(document.createTextNode(styles.toString()));
         result.appendChild(style);
-
-        System.out.println("Element head created");
 
         return result;
     }
