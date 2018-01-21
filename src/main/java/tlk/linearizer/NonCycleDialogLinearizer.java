@@ -25,102 +25,111 @@ public class NonCycleDialogLinearizer implements IDialogLinearizer {
             }
         }
         // We don't have any cycles so move on
-        Set<Integer> result = new LinkedHashSet<>(idsToDialogs.size());
-        Set<Integer> visited = new HashSet<>(idsToDialogs.size());
         // Find all strings that have no parents
         Set<Integer> roots = findRoots();
-        createOrder(roots.iterator().next(), visited, result);
+        return createOrder(roots);
+    }
+
+    /**
+     * Creates an ordered group of string IDs, that means a set of string IDs, for given root string ID. For the
+     * given IDs all their children and descendants are added to this group.
+     *
+     * @param roots the string IDs of all dialog roots
+     * @return the set that collects the linearized string IDs
+     */
+    private Set<Integer> createOrder(Set<Integer> roots) {
+        // Initialize the temporary list that contains string IDs which need to be visited
+        Deque<Integer> deque = new LinkedList<>(roots);
+        // Initialize the result that contains at the end all ordered string IDs in their order
+        Set<Integer> result = new LinkedHashSet<>(idsToDialogs.size());
+
+        // While the temporary list contains string IDs, continue
+        while (!deque.isEmpty()) {
+            // Rotate a string ID at the first position that is the best candidate fo being the next ID in the
+            // resulting list
+            rotateToCandidate(deque, result, 0);
+
+            // Find all siblings of the first string ID (including itself) and add it to the resulting list. So all
+            // siblings stay close together to make the process of translating easier
+            Set<Integer> siblings = findSiblings(deque.removeFirst());
+            deque.removeAll(siblings);
+            result.addAll(siblings);
+
+            // Add all children of the siblings to the temporary list
+            LinkedList<Integer> children = new LinkedList<>();
+            for (int each : siblings) {
+                children.addAll(idsToDialogs.get(each).getChildren());
+            }
+            Iterator<Integer> reverseIterator = children.descendingIterator();
+            while (reverseIterator.hasNext()) {
+                int child = reverseIterator.next();
+                if (!deque.contains(child) && !result.contains(child)) {
+                    deque.addFirst(child);
+                }
+            }
+        }
         return result;
     }
 
     /**
-     * Creates an ordered group of string IDs, that means a set of string IDs, for a given string ID. For the given ID
-     * all its parents and children are added to this group. The parents and children are then searched for their
-     * parents and children as well.
+     * Finds for a given string ID all sibling IDs.
      *
-     * @param id        the string ID that is added to the group, including its children and parents
-     * @param collector te set that collects the linearized string IDs
-     * @param visited   all already visited IDs
+     * @param id the string ID
+     * @return siblings of the string ID, including the input ID
      */
-    private void createOrder(int id, Set<Integer> visited, Set<Integer> collector) {
+    private Set<Integer> findSiblings(int id) {
+        // If the string ID has no parents it is a root node
+        if (idsToDialogs.get(id).getParents().isEmpty()) {
+            return Collections.singleton(id);
+        }
+        Set<Integer> result = new LinkedHashSet<>();
+        for (int eachParent : idsToDialogs.get(id).getParents()) {
+            result.addAll(idsToDialogs.get(eachParent).getChildren());
+        }
+        return result;
+    }
 
-        // If there is an not yet visited parent of the ID it is called first
-        int firstUnvisitedParent = getFirstUnvisitedParent(idsToDialogs.get(id).getParents(), visited);
-        if (firstUnvisitedParent != -1) {
-            createOrder(firstUnvisitedParent, visited, collector);
-            // The current ID will be visited again as it is a child of its parent node, so do nothing here
+    /**
+     * Rotates a string ID at the first position to the last position in the given queue if the string ID does have 1)
+     * any not yet visited parents or 2) a sibling which has any not yet visited parents.
+     *
+     * @param deque   the string IDs
+     * @param visited the visited string IDs
+     */
+    private void rotateToCandidate(Deque<Integer> deque, Set<Integer> visited, int iteration) {
+        // If the iteration count is higher than the size of deque then there is no good candidate which fulfills 1)
+        // and 2). Rotate to the minimal string ID instead
+        if (iteration >= deque.size()) {
+            if (deque.peekFirst() != Collections.min(deque).intValue()) {
+                deque.addLast(deque.removeFirst());
+                rotateToCandidate(deque, visited, iteration + 1);
+            }
             return;
         }
-        // Adds the ID to the collector and marks it as visited
-        collector.add(id);
-        visited.add(id);
-        // Get all children which have parents (beside the current ID) that are not marked as visited
-        Set<Integer> childrenWithUnvisitedParents =
-                getChildrenWithUnvisitedParents(idsToDialogs.get(id).getChildren(), visited);
-
-        if (childrenWithUnvisitedParents.isEmpty()) {
-            // If there are no such children, add all children of the current ID to the collector and visit them one
-            // by one
-            collector.addAll(idsToDialogs.get(id).getChildren());
-            for (int each : idsToDialogs.get(id).getChildren()) {
-                if (!visited.contains(each)) {
-                    createOrder(each, visited, collector);
-                }
+        boolean isCandidate = true;
+        outerLoop:
+        for (int eachParent : idsToDialogs.get(deque.getFirst()).getParents()) {
+            // Check for 1)
+            if (!visited.contains(eachParent)) {
+                isCandidate = false;
+                break;
             }
-        } else {
-            // If there are such children, visit them and add afterwards all remaining children of the current ID to
-            // the collector
-            for (int each : childrenWithUnvisitedParents) {
-                if (!visited.contains(each)) {
-                    createOrder(each, visited, collector);
-                }
-            }
-            collector.addAll(idsToDialogs.get(id).getChildren());
-        }
-    }
-
-    /**
-     * Returns all of the given children of a string ID that are not contained in the given set visited
-     *
-     * @param children all children of a string ID
-     * @param visited  all string IDs that were already marked as visited
-     * @return all unvisited children string IDs
-     */
-    private Set<Integer> getChildrenWithUnvisitedParents(Set<Integer> children, Set<Integer> visited) {
-        Set<Integer> result = new LinkedHashSet<>();
-        for (int eachChild : children) {
-            // If the child was already visited, ignore it
-            if (visited.contains(eachChild)) {
-                continue;
-            }
-            // Otherwise go through all parents of the child
-            for (int eachParent : idsToDialogs.get(eachChild).getParents()) {
-                // If the parent of the child is not marked as visited, add the child to the result and proceed with
-                // the next child
-                if (!visited.contains(eachParent)) {
-                    result.add(eachChild);
-                    break;
+            // Check for 2)
+            for (int eachChild : idsToDialogs.get(eachParent).getChildren()) {
+                for (int eachChildParent : idsToDialogs.get(eachChild).getParents()) {
+                    if (!visited.contains(eachChildParent)) {
+                        isCandidate = false;
+                        break outerLoop;
+                    }
                 }
             }
         }
-        return result;
-    }
-
-    /**
-     * Returns the first found parent of a given set of parents that is not contained in the given set visited
-     *
-     * @param parents all parents of a string ID
-     * @param visited all string IDs that were already marked as visited
-     * @return the first found unvisited parent
-     */
-    private int getFirstUnvisitedParent(Set<Integer> parents, Set<Integer> visited) {
-        for (int each : parents) {
-            // If the parent is not makred as visited, return it
-            if (!visited.contains(each)) {
-                return each;
-            }
+        if (isCandidate) {
+            return;
         }
-        return -1;
+        // Rotate
+        deque.addLast(deque.removeFirst());
+        rotateToCandidate(deque, visited, iteration + 1);
     }
 
     /**
