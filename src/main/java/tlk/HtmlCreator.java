@@ -12,7 +12,10 @@
 
 package tlk;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -73,7 +76,7 @@ class HtmlCreator {
         html.appendChild(buildBody(document));
         document.appendChild(html);
 
-        // Copy a dialog block as an example to the beginning of the HTML
+        // Create an example at the beginning of the HTML
         createExample(document);
 
         // Write the DOM to the output folder
@@ -81,60 +84,214 @@ class HtmlCreator {
     }
 
     /**
-     * Creates an example of s dialog block by copying a specific block. The example block is then modified that links
-     * are pointing nowhere and id attributes are removed so that they do not interfere with the original ids.
+     * Creates an example of a dialog block. The example block's links are pointing nowhere and id attributes are
+     * non-existent.
      *
      * @param document the DOM document
      */
     private void createExample(Document document) {
 
-        // Copy the dialog block with starting id #39271
-        NodeList source = document.getElementById("id39271").getParentNode().getChildNodes();
-        Element target = document.getElementById("example");
-        for (int i = 0; i < source.getLength(); i++) {
-            target.appendChild(source.item(i).cloneNode(true));
-        }
+        Element example = document.getElementById("example");
+
+        Element span0 = document.createElement("span");
+        span0.setAttribute("class", "sayparent");
+        example.appendChild(span0);
+
+        Element a0 = document.createElement("a");
+        a0.setAttribute("class", "idlink");
+        a0.setAttribute("href", "#");
+        a0.appendChild(document.createTextNode("#39280"));
+        span0.appendChild(a0);
+
+        Element span1 = document.createElement("span");
+        span1.setAttribute("class", "supporttext");
+        span1.appendChild(document.createTextNode(
+                "▾ BDVOGHIJ: Ja. Be in good cheer! Soon, you will breathe unfouled air, feel wine upon your lips, " +
+                        "take a lady to—well, maybe not that one. But these other pleasures await you."));
+        example.appendChild(span1);
+
+        Element span2 = document.createElement("span");
+        span2.setAttribute("class", "sayparent");
+        example.appendChild(span2);
+
+        Element a1 = document.createElement("a");
+        a1.setAttribute("class", "idlink");
+        a1.setAttribute("href", "#");
+        a1.appendChild(document.createTextNode("#39279"));
+        span2.appendChild(a1);
+
+        Element span3 = document.createElement("span");
+        span3.setAttribute("class", "supporttext");
+        span3.appendChild(document.createTextNode(
+                "▾ BDMINSCJ: Boo says the paths we choose will take us where we're meant to be."));
+        example.appendChild(span3);
+
+        Element span4 = document.createElement("span");
+        span4.setAttribute("class", "sayparent");
+        example.appendChild(span4);
+
+        Element a2 = document.createElement("a");
+        a2.setAttribute("class", "idlink");
+        a2.setAttribute("href", "#");
+        a2.appendChild(document.createTextNode("#39268"));
+        span4.appendChild(a2);
+
+        Element span5 = document.createElement("span");
+        span5.setAttribute("class", "supporttext");
+        span5.appendChild(document.createTextNode("▾ You did everything you could to turn her from it."));
+        example.appendChild(span5);
+
+        Element span6 = document.createElement("span");
+        span6.setAttribute("class", "sayparent");
+        example.appendChild(span6);
+
+        Element a3 = document.createElement("a");
+        a3.setAttribute("class", "idlink");
+        a3.setAttribute("href", "#");
+        a3.appendChild(document.createTextNode("#39269"));
+        span6.appendChild(a3);
+
+        Element span7 = document.createElement("span");
+        span7.setAttribute("class", "supporttext");
+        span7.appendChild(document.createTextNode(
+                "▾ And she paid the price for walking that path. But you are free again. That is something, surely?"));
+        example.appendChild(span7);
+
+        Element span8 = document.createElement("span");
+        span8.setAttribute("class", "sayparent");
+        example.appendChild(span8);
+
+        Element a4 = document.createElement("a");
+        a4.setAttribute("class", "idlink");
+        a4.setAttribute("href", "#");
+        a4.appendChild(document.createTextNode("#39270"));
+        span8.appendChild(a4);
+
+        Element span9 = document.createElement("span");
+        span9.setAttribute("class", "supporttext");
+        span9.appendChild(document.createTextNode(
+                "▾ Caelar was no longer a girl. She knew the havoc wrought in her name and allowed it to go on. The " +
+                        "responsibility for all that has happened these past weeks is hers and hers alone."));
+        example.appendChild(span9);
+
+        Element span10 = document.createElement("span");
+        span10.setAttribute("class", "say");
+        span10.appendChild(document.createTextNode("SAY "));
+        example.appendChild(span10);
+
+        Element span11 = document.createElement("span");
+        span11.setAttribute("class", "idlink");
+        span11.appendChild(document.createTextNode("#39271"));
+        span10.appendChild(span11);
+
+        Element span12 = document.createElement("span");
+        span12.setAttribute("class", "text");
+        span12.appendChild(document.createTextNode("A cold comfort. But it's all I have left to me now."));
+        example.appendChild(span12);
+
+        Element span13 = document.createElement("span");
+        span13.setAttribute("class", "journalparent");
+        example.appendChild(span13);
+
+        Element a5 = document.createElement("a");
+        a5.setAttribute("class", "idlink");
+        a5.setAttribute("href", "#");
+        a5.appendChild(document.createTextNode("#39273"));
+        span13.appendChild(a5);
+
+        Element span14 = document.createElement("span");
+        span14.setAttribute("class", "supporttext");
+        span14.appendChild(document.createTextNode(
+                "▾ This pit has left its mark on me. I will never be free of it. But let us leave, all the same."));
+        example.appendChild(span14);
+
+        Element span15 = document.createElement("span");
+        span15.setAttribute("class", "journalparent");
+        example.appendChild(span15);
+
+        Element a6 = document.createElement("a");
+        a6.setAttribute("class", "idlink");
+        a6.setAttribute("href", "#");
+        a6.appendChild(document.createTextNode("#39276"));
+        span15.appendChild(a6);
+
+        Element span16 = document.createElement("span");
+        span16.setAttribute("class", "supporttext");
+        span16.appendChild(document.createTextNode("▾ It will not remain so for long."));
+        example.appendChild(span16);
+
+        Element span17 = document.createElement("span");
+        span17.setAttribute("class", "journalparent");
+        example.appendChild(span17);
+
+        Element a7 = document.createElement("a");
+        a7.setAttribute("class", "idlink");
+        a7.setAttribute("href", "#");
+        a7.appendChild(document.createTextNode("#39278"));
+        span17.appendChild(a7);
+
+        Element span18 = document.createElement("span");
+        span18.setAttribute("class", "supporttext");
+        span18.appendChild(document.createTextNode(
+                "▾ There is no consolation in that for me. But I shall grieve later. For now, let us be done with " +
+                        "this place."));
+        example.appendChild(span18);
+
+        Element span19 = document.createElement("span");
+        span19.setAttribute("class", "journal");
+        span19.appendChild(document.createTextNode("JOURNAL "));
+        example.appendChild(span19);
+
+        Element span20 = document.createElement("span");
+        span20.setAttribute("class", "idlink");
+        span20.appendChild(document.createTextNode("#59851"));
+        span19.appendChild(span20);
+
+        Element span21 = document.createElement("span");
+        span21.setAttribute("class", "text");
+        span21.appendChild(document.createTextNode("** No text specified in TLK file **"));
+        example.appendChild(span21);
+
+        Element span22 = document.createElement("span");
+        span22.setAttribute("class", "reply");
+        span22.appendChild(document.createTextNode("REPLY "));
+        example.appendChild(span22);
+
+        Element span23 = document.createElement("span");
+        span23.setAttribute("class", "idlink");
+        span23.appendChild(document.createTextNode("#39275"));
+        span22.appendChild(span23);
+
+        Element span24 = document.createElement("span");
+        span24.setAttribute("class", "text");
+        span24.appendChild(document.createTextNode(
+                "BDCORWIJ: Forgive me, Master Argent, but we must leave this place. Belhifet's fallen, but the portal" +
+                        " to Dragonspear is still open..."));
+        example.appendChild(span24);
+
+        Element span25 = document.createElement("span");
+        span25.setAttribute("class", "replychild");
+        example.appendChild(span25);
+
+        Element a8 = document.createElement("a");
+        a8.setAttribute("class", "idlink");
+        a8.setAttribute("href", "#");
+        a8.appendChild(document.createTextNode("#39276"));
+        span25.appendChild(a8);
+
+        Element span26 = document.createElement("span");
+        span26.setAttribute("class", "supporttext");
+        span26.appendChild(document.createTextNode("▸ It will not remain so for long."));
+        example.appendChild(span26);
+
 
         // Add line numbers for referencing
-        NodeList spans = target.getChildNodes();
+        NodeList spans = example.getChildNodes();
         for (int i = 0; i < spans.getLength(); i = i + 3) {
             Element lineNo = document.createElement("span");
             lineNo.setAttribute("class", "lineno");
             lineNo.appendChild(document.createTextNode(String.valueOf(i / 3)));
             spans.item(i).getParentNode().insertBefore(lineNo, spans.item(i));
-        }
-
-        // Remove all href and id attributes as it is only an example
-        for (int i = 0; i < spans.getLength(); i++) {
-            removeLinksAndIds(spans.item(i));
-        }
-    }
-
-    /**
-     * Removes the id attributes and links to IDs from all children of the given node and the node itself.
-     *
-     * @param node the example's root node
-     */
-    private void removeLinksAndIds(Node node) {
-        // If node is not an element we cannot do anything
-        if (node.getNodeType() != Node.ELEMENT_NODE) {
-            return;
-        }
-
-        Element element = (Element) node;
-
-        // Remove the id attribute
-        element.removeAttribute("id");
-
-        // Remove the link to other IDs
-        if (element.hasAttribute("href")) {
-            element.setAttribute("href", "#");
-        }
-
-        // Repeat above steps for all children of node
-        NodeList children = element.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            removeLinksAndIds(children.item(i));
         }
     }
 
@@ -203,8 +360,8 @@ class HtmlCreator {
 
         Element information4 = document.createElement("p");
         information4.appendChild(document.createTextNode(
-                "Line 5 is a string that is displayed as a spoken text directed to the player. The string ID is not" +
-                        " clickable as this is the reference string for this string block."));
+                "Line 5 is a string that is displayed as a spoken text directed to the player. The string ID is not " +
+                        "clickable as this is the reference string for this string block."));
         information4.appendChild(document.createElement("br"));
         information4.appendChild(document.createTextNode(
                 "Lines 0-4 are all preceding strings to line 5, that is all strings that line 5 is a possible answer " +
