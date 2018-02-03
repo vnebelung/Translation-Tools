@@ -100,7 +100,6 @@ class GroupCreator {
         return result;
     }
 
-
     /**
      * Writes the given group of string IDs into a TXT file to the given folder. All string IDs must not be used as part
      * of a dialog.

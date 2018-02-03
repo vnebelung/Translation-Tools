@@ -7,6 +7,7 @@
 
 package main;
 
+import items.ItemMode;
 import status_image.ImageMode;
 import tlk.DialogStructureMode;
 
@@ -50,14 +51,16 @@ class TranslationTools {
         Map<String, IMode> modes = new HashMap<>();
         modes.put("status", new ImageMode());
         modes.put("dialog", new DialogStructureMode());
+        modes.put("items", new ItemMode());
 
         if (!modes.containsKey(args[0])) {
             // If the first parameter is not a mode defined above
             System.out.println();
-            System.out.println("Usage: java -jar TranslationTools.jar [status|dialog] [options]");
+            System.out.println("Usage: java -jar TranslationTools.jar [status|dialog|items] [options]");
             System.out.println(
                     "status  = generates or updates a graphic that visualizes the translation status of a project");
             System.out.println("dialog  = analyzes TLK files and generates dialog structure overviews");
+            System.out.println("items   = extracts string IDs from ITM files");
             return;
         }
 
