@@ -5,12 +5,14 @@ package items;
  */
 class Item implements Comparable<Item> {
 
+    private String fileName;
     private final int generalName;
     private final int identifiedName;
     private final int generalDescription;
     private final int identifiedDescription;
 
-    Item(int generalName, int identifiedName, int generalDescription, int identifiedDescription) {
+    Item(String fileName, int generalName, int identifiedName, int generalDescription, int identifiedDescription) {
+        this.fileName = fileName;
         this.generalName = generalName;
         this.identifiedName = identifiedName;
         this.generalDescription = generalDescription;
@@ -109,5 +111,9 @@ class Item implements Comparable<Item> {
         int min = Math.min(generalName, Math.min(identifiedName, Math.min(generalName, generalDescription)));
         int minO = Math.min(o.generalName, Math.min(o.identifiedName, Math.min(o.generalName, o.generalDescription)));
         return min - minO;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

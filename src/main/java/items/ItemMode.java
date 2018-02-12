@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 public class ItemMode implements IMode {
 
     private final static String OUTPUT_FILENAME = "ItemStrings.txt";
+    private final static String OUTPUT_CSV_FILENAME = "ItemStrings.csv";
 
     /**
      * Invokes the user chosen functionality.
@@ -50,8 +51,56 @@ public class ItemMode implements IMode {
         chopItemsToRange(items, rangeMinInclusive, rangeMaxInclusive);
         // Write the item string IDs into a file
         writeItemStringIdsToFile(items, folder, rangeMinInclusive, rangeMaxInclusive);
+        // Write item strings IDs into a CSV file
+        writeItemStringIdsToCsvFile(items, folder, rangeMinInclusive, rangeMaxInclusive);
 
-        System.out.printf("Items written to '%s'%n", folder.resolve(OUTPUT_FILENAME).toAbsolutePath().toString());
+        System.out
+                .printf("Item strings written to '%s'%n", folder.resolve(OUTPUT_FILENAME).toAbsolutePath().toString());
+        System.out.printf("CSV written to '%s'%n", folder.resolve(OUTPUT_CSV_FILENAME).toAbsolutePath().toString());
+    }
+
+    /**
+     * Writes the string IDs of the given items into a CSV file to the given folder.
+     *
+     * @param items        the parsed items
+     * @param folder       the output folder
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
+     * @throws IOException if an I/O error occurs
+     */
+    private void writeItemStringIdsToCsvFile(Set<Item> items, Path folder, int minInclusive, int maxInclusive) throws
+            IOException {
+        // Delete the old file and create a new one
+        Files.deleteIfExists(folder.resolve(OUTPUT_CSV_FILENAME));
+        Path file = Files.createFile(folder.resolve(OUTPUT_CSV_FILENAME));
+
+        try (BufferedWriter bufferedWriter = new BufferedWriter(Files.newBufferedWriter(file))) {
+            bufferedWriter
+                    .write("\"The file can include string IDs out of the user-defined string range " + minInclusive +
+                            "-" + maxInclusive + "\",\"\",\"\",\"\",\"\"");
+            bufferedWriter.newLine();
+            bufferedWriter.write("\"\",\"\",\"\",\"\",\"\"");
+            bufferedWriter.newLine();
+            bufferedWriter.write("\"ITM File\",\"General Name\",\"Identified Name\",\"General Description\"," +
+                    "\"Identified " + "Description\"");
+            bufferedWriter.newLine();
+            for (Item each : items) {
+                bufferedWriter.write('"');
+                bufferedWriter.write(String.valueOf(each.getFileName()));
+                bufferedWriter.write("\",\"");
+                bufferedWriter.write(String.valueOf((each.getGeneralName() == -1 ? "" : each.getGeneralName())));
+                bufferedWriter.write("\",\"");
+                bufferedWriter.write(String.valueOf((each.getIdentifiedName() == -1 ? "" : each.getIdentifiedName())));
+                bufferedWriter.write("\",\"");
+                bufferedWriter.write(String
+                        .valueOf((each.getGeneralDescription() == -1 ? "" : each.getGeneralDescription())));
+                bufferedWriter.write("\",\"");
+                bufferedWriter.write(String
+                        .valueOf((each.getIdentifiedDescription() == -1 ? "" : each.getIdentifiedDescription())));
+                bufferedWriter.write('"');
+                bufferedWriter.newLine();
+            }
+        }
     }
 
     /**
@@ -151,7 +200,8 @@ public class ItemMode implements IMode {
         int identifiedDescription = byteBuffer.getInt(12);
 
         // Create a new item withe the four string IDs
-        return new Item(generalName, identifiedName, generalDescription, identifiedDescription);
+        return new Item(file.getFileName().toString(), generalName, identifiedName, generalDescription,
+                identifiedDescription);
     }
 
     /**
