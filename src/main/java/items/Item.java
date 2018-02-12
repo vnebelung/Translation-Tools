@@ -11,6 +11,15 @@ class Item implements Comparable<Item> {
     private final int generalDescription;
     private final int identifiedDescription;
 
+    /**
+     * Constructs a new item that represents an in-game item with its for string IDs.
+     *
+     * @param fileName              the item's file name
+     * @param generalName           the item's "general name" string ID
+     * @param identifiedName        the item's "identified name" string ID
+     * @param generalDescription    the item's "general description" string ID
+     * @param identifiedDescription the item's "identified description" string ID
+     */
     Item(String fileName, int generalName, int identifiedName, int generalDescription, int identifiedDescription) {
         this.fileName = fileName;
         this.generalName = generalName;
@@ -19,49 +28,85 @@ class Item implements Comparable<Item> {
         this.identifiedDescription = identifiedDescription;
     }
 
+    /**
+     * Returns the "general name" string ID of the item.
+     * @return the "general name" string ID.
+     */
     public int getGeneralName() {
         return generalName;
     }
 
+    /**
+     * Returns the "identified name" string ID of the item.
+     * @return the "identified name" string ID.
+     */
     public int getIdentifiedName() {
         return identifiedName;
     }
 
+    /**
+     * Returns the "general description" string ID of the item.
+     * @return the "general description" string ID.
+     */
     public int getGeneralDescription() {
         return generalDescription;
     }
 
+    /**
+     * Returns the "identified description" string ID of the item.
+     * @return the "identified description" string ID.
+     */
     public int getIdentifiedDescription() {
         return identifiedDescription;
     }
 
+    /**
+     * Returns whether the "identified description" string ID is in the given range.
+     * @return true if "identified description" is in the given range
+     */
     public boolean isIdentifiedDescriptionInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= identifiedDescription && identifiedDescription <= maxInclusive;
     }
 
+    /**
+     * Returns whether the "identified name" string ID is in the given range.
+     * @return true if "identified name" is in the given range
+     */
     public boolean isIdentifiedNameInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= identifiedName && identifiedName <= maxInclusive;
     }
 
+    /**
+     * Returns whether the "general description" string ID is in the given range.
+     * @return true if "general description" is in the given range
+     */
     public boolean isGeneralDescriptionInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= generalDescription && generalDescription <= maxInclusive;
     }
 
+    /**
+     * Returns whether the "general name" string ID is in the given range.
+     * @return true if "general name" is in the given range
+     */
     public boolean isGeneralNameInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= generalName && generalName <= maxInclusive;
     }
 
+    /**
+     * Returns whether all four string IDs are in the given range.
+     * @return true if all four string IDs are in the given range
+     */
     boolean isInRange(int minInclusive, int maxInclusive) {
-        if (minInclusive <= generalName && generalName <= maxInclusive) {
+        if (isGeneralNameInRange(minInclusive, maxInclusive)) {
             return true;
         }
-        if (minInclusive <= identifiedName && identifiedName <= maxInclusive) {
+        if (isIdentifiedNameInRange(minInclusive, maxInclusive)) {
             return true;
         }
-        if (minInclusive <= generalDescription && generalDescription <= maxInclusive) {
+        if (isGeneralDescriptionInRange(minInclusive, maxInclusive)) {
             return true;
         }
-        if (minInclusive <= identifiedDescription && identifiedDescription <= maxInclusive) {
+        if (isIdentifiedDescriptionInRange(minInclusive, maxInclusive)) {
             return true;
         }
         return false;
@@ -113,6 +158,10 @@ class Item implements Comparable<Item> {
         return min - minO;
     }
 
+    /**
+     * Returns the name of the item file.
+     * @return the file's name
+     */
     public String getFileName() {
         return fileName;
     }
