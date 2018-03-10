@@ -149,7 +149,7 @@ public class ItemMode implements IMode {
      * @param maxInclusive the maximum string ID, inclusive
      */
     private void chopItemsToRange(Set<Item> items, int minInclusive, int maxInclusive) {
-        items.removeIf(i -> !i.isInRange(minInclusive, maxInclusive));
+        items.removeIf(item -> !item.isInRange(minInclusive, maxInclusive));
     }
 
     /**

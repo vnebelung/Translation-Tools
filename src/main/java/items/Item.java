@@ -1,15 +1,18 @@
 package items;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 /**
  * This class represents an item with its string IDs.
  */
 class Item implements Comparable<Item> {
 
-    private String fileName;
     private final int generalName;
     private final int identifiedName;
     private final int generalDescription;
     private final int identifiedDescription;
+    private String fileName;
 
     /**
      * Constructs a new item that represents an in-game item with its for string IDs.
@@ -30,6 +33,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns the "general name" string ID of the item.
+     *
      * @return the "general name" string ID.
      */
     public int getGeneralName() {
@@ -38,6 +42,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns the "identified name" string ID of the item.
+     *
      * @return the "identified name" string ID.
      */
     public int getIdentifiedName() {
@@ -46,6 +51,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns the "general description" string ID of the item.
+     *
      * @return the "general description" string ID.
      */
     public int getGeneralDescription() {
@@ -54,6 +60,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns the "identified description" string ID of the item.
+     *
      * @return the "identified description" string ID.
      */
     public int getIdentifiedDescription() {
@@ -62,6 +69,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns whether the "identified description" string ID is in the given range.
+     *
      * @return true if "identified description" is in the given range
      */
     public boolean isIdentifiedDescriptionInRange(int minInclusive, int maxInclusive) {
@@ -70,6 +78,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns whether the "identified name" string ID is in the given range.
+     *
      * @return true if "identified name" is in the given range
      */
     public boolean isIdentifiedNameInRange(int minInclusive, int maxInclusive) {
@@ -78,6 +87,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns whether the "general description" string ID is in the given range.
+     *
      * @return true if "general description" is in the given range
      */
     public boolean isGeneralDescriptionInRange(int minInclusive, int maxInclusive) {
@@ -86,6 +96,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns whether the "general name" string ID is in the given range.
+     *
      * @return true if "general name" is in the given range
      */
     public boolean isGeneralNameInRange(int minInclusive, int maxInclusive) {
@@ -94,6 +105,7 @@ class Item implements Comparable<Item> {
 
     /**
      * Returns whether all four string IDs are in the given range.
+     *
      * @return true if all four string IDs are in the given range
      */
     boolean isInRange(int minInclusive, int maxInclusive) {
@@ -153,13 +165,37 @@ class Item implements Comparable<Item> {
      */
     @Override
     public int compareTo(Item o) {
-        int min = Math.min(generalName, Math.min(identifiedName, Math.min(generalName, generalDescription)));
-        int minO = Math.min(o.generalName, Math.min(o.identifiedName, Math.min(o.generalName, o.generalDescription)));
-        return min - minO;
+        SortedSet<Integer> ids = new TreeSet<>();
+        ids.add(generalName);
+        ids.add(generalDescription);
+        ids.add(identifiedName);
+        ids.add(identifiedDescription);
+        SortedSet<Integer> idsO = new TreeSet<>();
+        idsO.add(o.generalName);
+        idsO.add(o.generalDescription);
+        idsO.add(o.identifiedName);
+        idsO.add(o.identifiedDescription);
+        while (!ids.isEmpty() && !idsO.isEmpty()) {
+            int min = ids.first();
+            ids.remove(min);
+            int minO = idsO.first();
+            idsO.remove(minO);
+            if (min != minO) {
+                return min - minO;
+            }
+        }
+        if (ids.isEmpty() && idsO.isEmpty()) {
+            return fileName.compareTo(o.fileName);
+        } else if (ids.isEmpty()) {
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     /**
      * Returns the name of the item file.
+     *
      * @return the file's name
      */
     public String getFileName() {
