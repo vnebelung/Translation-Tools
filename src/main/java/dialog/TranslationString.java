@@ -5,16 +5,16 @@
  * as published by Sam Hocevar. See the COPYING file for more details.
  */
 
-package tlk;
+package dialog;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * This class is responsible for storing the text of a string and the relation of the string to its parents and
- * children.
+ * This class is responsible for storing the text of a string and the relation of the string to its parents,
+ * children or neighbors.
  */
-public class DialogString implements Comparable<DialogString> {
+public class TranslationString implements Comparable<TranslationString> {
 
     private static int counter = 0;
     private int id;
@@ -23,9 +23,10 @@ public class DialogString implements Comparable<DialogString> {
     private Type type;
     private Set<Integer> children = new LinkedHashSet<>();
     private Set<Integer> parents = new LinkedHashSet<>();
+    private Set<Integer> neighbors = new LinkedHashSet<>();
 
     /**
-     * Constructs the dialog string. This constructor is private because the construction is done via the factory
+     * Constructs the dialog/script string. This constructor is private because the construction is done via the factory
      * pattern because the string has to have an unique ID. This ID has nothing to do with string IDs and is only used
      * for class internal reasons so that different instances of this class containing the same text can be
      * distinguished from each other.
@@ -35,7 +36,7 @@ public class DialogString implements Comparable<DialogString> {
      * @param id       the internal id
      * @param filename the file's name which contains the string
      */
-    private DialogString(String text, Type type, int id, String filename) {
+    private TranslationString(String text, Type type, int id, String filename) {
         this.text = text;
         this.type = type;
         this.id = id;
@@ -43,15 +44,16 @@ public class DialogString implements Comparable<DialogString> {
     }
 
     /**
-     * Constructs a new dialog string with a given text and type that is contained in the file with the given name.
+     * Constructs a new dialog/script string with a given text and type that is contained in the file with the given
+     * name.
      *
      * @param text     the string text
      * @param type     the string type
      * @param filename the file's name which contains the string
      * @return the constructed dialog string
      */
-    static DialogString create(String text, Type type, String filename) {
-        DialogString result = new DialogString(text, type, counter, filename);
+    public static TranslationString create(String text, Type type, String filename) {
+        TranslationString result = new TranslationString(text, type, counter, filename);
         counter++;
         return result;
     }
@@ -61,7 +63,7 @@ public class DialogString implements Comparable<DialogString> {
      *
      * @param child the child's string ID
      */
-    void addChild(int child) {
+    public void addChild(int child) {
         children.add(child);
     }
 
@@ -70,7 +72,7 @@ public class DialogString implements Comparable<DialogString> {
      *
      * @param parent the parent's string ID
      */
-    void addParent(int parent) {
+    public void addParent(int parent) {
         parents.add(parent);
     }
 
@@ -102,7 +104,7 @@ public class DialogString implements Comparable<DialogString> {
     }
 
     /**
-     * Returns the string IDs of all parents of this string
+     * Returns the string IDs of all parents of this dialog string
      *
      * @return the parent's string IDs
      */
@@ -111,8 +113,8 @@ public class DialogString implements Comparable<DialogString> {
     }
 
     /**
-     * Returns the text of this dialog string. If the given filename is not equal to the filename of this dialog string,
-     * the filename of this string is prepended to the returned text.
+     * Returns the text of this dialog/script string. If the given filename is not equal to the filename of this
+     * dialog/script string, the filename of this string is prepended to the returned text.
      *
      * @return the text
      */
@@ -123,22 +125,22 @@ public class DialogString implements Comparable<DialogString> {
     /**
      * Compares this object with the specified object for order.  Returns a negative integer, zero, or a positive
      * integer as this object is less than, equal to, or greater than the specified object.
-     * <p>
+     *
      * <p>The implementor must ensure <tt>sgn(x.compareTo(y)) == -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and
      * <tt>y</tt>.  (This implies that <tt>x.compareTo(y)</tt> must throw an exception iff <tt>y.compareTo(x)</tt>
      * throws an exception.)
-     * <p>
+     *
      * <p>The implementor must also ensure that the relation is transitive: <tt>(x.compareTo(y)&gt;0 &amp;&amp;
      * y.compareTo(z)&gt;0)</tt> implies <tt>x.compareTo(z)&gt;0</tt>.
-     * <p>
+     *
      * <p>Finally, the implementor must ensure that <tt>x.compareTo(y)==0</tt> implies that <tt>sgn(x.compareTo(z)) ==
      * sgn(y.compareTo(z))</tt>, for all <tt>z</tt>.
-     * <p>
+     *
      * <p>It is strongly recommended, but <i>not</i> strictly required that <tt>(x.compareTo(y)==0) ==
      * (x.equals(y))</tt>.  Generally speaking, any class that implements the <tt>Comparable</tt> interface and violates
      * this condition should clearly indicate this fact.  The recommended language is "Note: this class has a natural
      * ordering that is inconsistent with equals."
-     * <p>
+     *
      * <p>In the foregoing description, the notation <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the
      * mathematical <i>signum</i> function, which is defined to return one of <tt>-1</tt>, <tt>0</tt>, or <tt>1</tt>
      * according to whether the value of <i>expression</i> is negative, zero or positive.
@@ -150,7 +152,7 @@ public class DialogString implements Comparable<DialogString> {
      * @throws ClassCastException   if the specified object's type prevents it from being compared to this object.
      */
     @Override
-    public int compareTo(DialogString o) {
+    public int compareTo(TranslationString o) {
         int result = text.compareTo(o.text);
         if (result == 0) {
             return id - o.id;
@@ -163,7 +165,7 @@ public class DialogString implements Comparable<DialogString> {
      *
      * @return the type
      */
-    Type getType() {
+    public Type getType() {
         return type;
     }
 
@@ -176,5 +178,32 @@ public class DialogString implements Comparable<DialogString> {
         return filename;
     }
 
-    enum Type {DIALOG, JOURNAL, ERROR}
+    /**
+     * Adds a script string represented by its string ID as a neighbor of this script string.
+     *
+     * @param neighbor the neighbor's string ID
+     */
+    public void addNeighbor(int neighbor) {
+        neighbors.add(neighbor);
+    }
+
+    /**
+     * Removes a script string represented by its string ID from the neighbors of this script string.
+     *
+     * @param neighbor the neighbor's string ID
+     */
+    void removeNeighbor(int neighbor) {
+        neighbors.remove(neighbor);
+    }
+
+    /**
+     * Returns the string IDs of all neighbors of this script string
+     *
+     * @return the neighbors's string IDs
+     */
+    public Set<Integer> getNeighbors() {
+        return neighbors;
+    }
+
+    public enum Type {DIALOG, JOURNAL, ERROR, SCRIPT_HEAD, SCRIPT_JOURNAL}
 }

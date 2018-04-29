@@ -1,6 +1,6 @@
-package tlk.linearizer;
+package dialog.linearizer;
 
-import tlk.DialogString;
+import dialog.TranslationString;
 
 import java.util.Map;
 import java.util.Set;
@@ -18,5 +18,5 @@ public interface IDialogLinearizer {
      * @throws IllegalArgumentException if idsToDialogs contains mappings that cannot be processed by the dialog
      *                                  linearizer
      */
-    Set<Integer> linearize(Map<Integer, DialogString> idsToDialogs) throws IllegalArgumentException;
+    Set<Integer> linearize(Map<Integer, TranslationString> idsToDialogs) throws IllegalArgumentException;
 }

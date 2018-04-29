@@ -1,6 +1,6 @@
-package tlk.linearizer;
+package dialog.linearizer;
 
-import tlk.DialogString;
+import dialog.TranslationString;
 
 import java.util.*;
 
@@ -10,10 +10,10 @@ import java.util.*;
  */
 public class CycleDialogLinearizer implements IDialogLinearizer {
 
-    private HashMap<Integer, DialogString> idsToDialogs;
+    private HashMap<Integer, TranslationString> idsToDialogs;
 
     @Override
-    public Set<Integer> linearize(Map<Integer, DialogString> idsToDialogs) {
+    public Set<Integer> linearize(Map<Integer, TranslationString> idsToDialogs) {
         this.idsToDialogs = new HashMap<>(idsToDialogs);
         return createOrder(this.idsToDialogs.keySet().iterator().next());
     }
@@ -30,7 +30,7 @@ public class CycleDialogLinearizer implements IDialogLinearizer {
     private Set<Integer> createOrder(int id) {
         Set<Integer> result = new LinkedHashSet<>();
         // Remove the added ID from the map that it will not be analyzed again
-        DialogString dialogString = idsToDialogs.remove(id);
+        TranslationString dialogString = idsToDialogs.remove(id);
         // If the id is somehow not existent in the map, return an empty set
         if (dialogString == null) {
             return Collections.emptySet();

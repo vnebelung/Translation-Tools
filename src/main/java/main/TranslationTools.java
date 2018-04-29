@@ -7,9 +7,9 @@
 
 package main;
 
+import dialog.DialogStructureMode;
 import items.ItemMode;
 import status_image.ImageMode;
-import tlk.DialogStructureMode;
 
 import java.io.IOException;
 import java.util.Arrays;

@@ -5,11 +5,12 @@
  * as published by Sam Hocevar. See the COPYING file for more details.
  */
 
-package tlk;
+package dialog;
 
-import tlk.linearizer.CycleDialogLinearizer;
-import tlk.linearizer.IDialogLinearizer;
-import tlk.linearizer.NonCycleDialogLinearizer;
+import dialog.linearizer.CycleDialogLinearizer;
+import dialog.linearizer.IDialogLinearizer;
+import dialog.linearizer.NonCycleDialogLinearizer;
+import dialog.linearizer.ScriptLinearizer;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -24,11 +25,11 @@ import java.util.*;
  */
 class GroupCreator {
 
-    public final static String OUTPUT_FILENAME = "DialogGroups.txt";
+    final static String OUTPUT_FILENAME = "DialogGroups.txt";
     private final int minInclusive;
     private final int maxInclusive;
-    private Map<String, IDialogLinearizer> linearizer = new HashMap<>();
-    private SortedMap<Integer, DialogString> idsToDialogs;
+    private Map<String, IDialogLinearizer> linearizers = new HashMap<>();
+    private SortedMap<Integer, TranslationString> idsToDialogs;
 
     /**
      * Constructs the group creator. The groups are constructed out of the given map.
@@ -37,14 +38,15 @@ class GroupCreator {
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      */
-    GroupCreator(SortedMap<Integer, DialogString> idsToDialogs, int minInclusive, int maxInclusive) {
+    GroupCreator(SortedMap<Integer, TranslationString> idsToDialogs, int minInclusive, int maxInclusive) {
         // Create a copy of idsToDialogs because it will be modified
         this.idsToDialogs = idsToDialogs;
         this.minInclusive = minInclusive;
         this.maxInclusive = maxInclusive;
 
-        linearizer.put("cycle", new CycleDialogLinearizer());
-        linearizer.put("noncycle", new NonCycleDialogLinearizer());
+        linearizers.put("cycle", new CycleDialogLinearizer());
+        linearizers.put("noncycle", new NonCycleDialogLinearizer());
+        linearizers.put("script", new ScriptLinearizer());
     }
 
     /**
@@ -62,12 +64,25 @@ class GroupCreator {
             // Take the first key and construct its group
             int id = idsToDialogs.firstKey();
 
-            Map<Integer, DialogString> group = createDialogGroup(id);
             Set<Integer> linearizedIds;
-            try {
-                linearizedIds = linearizer.get("noncycle").linearize(group);
-            } catch (IllegalArgumentException ignored) {
-                linearizedIds = linearizer.get("cycle").linearize(group);
+            Map<Integer, TranslationString> group;
+            switch (idsToDialogs.get(id).getType()) {
+                case DIALOG:
+                case JOURNAL:
+                    group = createDialogGroup(id);
+                    try {
+                        linearizedIds = linearizers.get("noncycle").linearize(group);
+                    } catch (IllegalArgumentException ignored) {
+                        linearizedIds = linearizers.get("cycle").linearize(group);
+                    }
+                    break;
+                case SCRIPT_HEAD:
+                case SCRIPT_JOURNAL:
+                    group = createScriptGroup(id);
+                    linearizedIds = linearizers.get("script").linearize(group);
+                    break;
+                default:
+                    linearizedIds = Collections.emptySet();
             }
             groups.add(linearizedIds);
         }
@@ -78,14 +93,32 @@ class GroupCreator {
     }
 
     /**
+     * Creates an unsorted script group where all strings are part of the same script file.
+     *
+     * @param id the string ID to start with
+     * @return the string ID and all its neighbors in the same file
+     */
+    private Map<Integer, TranslationString> createScriptGroup(int id) {
+        Map<Integer, TranslationString> result = new HashMap<>();
+        TranslationString scriptString = idsToDialogs.remove(id);
+        result.put(id, scriptString);
+        for (int each : scriptString.getNeighbors()) {
+            if (idsToDialogs.containsKey(each)) {
+                result.putAll(createScriptGroup(each));
+            }
+        }
+        return result;
+    }
+
+    /**
      * Creates an unsorted dialog group where all strings are somehow connected with each other.
      *
      * @param id the string ID to start with
      * @return the string ID and all its parents and children
      */
-    private Map<Integer, DialogString> createDialogGroup(int id) {
-        Map<Integer, DialogString> result = new HashMap<>();
-        DialogString dialogString = idsToDialogs.remove(id);
+    private Map<Integer, TranslationString> createDialogGroup(int id) {
+        Map<Integer, TranslationString> result = new HashMap<>();
+        TranslationString dialogString = idsToDialogs.remove(id);
         result.put(id, dialogString);
         for (int each : dialogString.getParents()) {
             if (idsToDialogs.containsKey(each)) {

@@ -1,12 +1,12 @@
-package tlk.linearizer;
+package dialog.linearizer;
 
-import tlk.DialogString;
+import dialog.TranslationString;
 
 import java.util.*;
 
 public class NonCycleDialogLinearizer implements IDialogLinearizer {
 
-    private Map<Integer, DialogString> idsToDialogs;
+    private Map<Integer, TranslationString> idsToDialogs;
 
     /**
      * Converts a set of string IDs that are somehow connected to each other into a linearized set.
@@ -16,7 +16,7 @@ public class NonCycleDialogLinearizer implements IDialogLinearizer {
      * @throws IllegalArgumentException if idsToDialogs contains mappings that result in cycles in the dialog structure
      */
     @Override
-    public Set<Integer> linearize(Map<Integer, DialogString> idsToDialogs) throws IllegalArgumentException {
+    public Set<Integer> linearize(Map<Integer, TranslationString> idsToDialogs) throws IllegalArgumentException {
         this.idsToDialogs = idsToDialogs;
         for (int each : this.idsToDialogs.keySet()) {
             // Check for every string whether itself or one of its children is part of a cyclic dialog structure
@@ -139,7 +139,7 @@ public class NonCycleDialogLinearizer implements IDialogLinearizer {
      */
     private Set<Integer> findRoots() {
         Set<Integer> result = new TreeSet<>();
-        for (Map.Entry<Integer, DialogString> each : idsToDialogs.entrySet()) {
+        for (Map.Entry<Integer, TranslationString> each : idsToDialogs.entrySet()) {
             if (each.getValue().getParents().isEmpty()) {
                 // If string has no parents it is a root node
                 result.add(each.getKey());

@@ -10,7 +10,7 @@
  * COPYING-lmsans10-regular file for details.
  */
 
-package tlk;
+package dialog;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
@@ -36,18 +36,18 @@ import java.util.SortedMap;
  */
 class HtmlCreator {
 
-    public final static String OUTPUT_FILENAME = "DialogOverview.html";
-    private SortedMap<String, List<Integer>> filenamesToIds;
-    private SortedMap<Integer, DialogString> idsToDialogs;
+    final static String OUTPUT_FILENAME = "DialogOverview.html";
+    private SortedMap<String, List<Integer>> fileNamesToIds;
+    private SortedMap<Integer, TranslationString> idsToDialogs;
 
     /**
      * Constructs the HTML creator. The HTML is constructed out of the given maps.
      *
-     * @param filenamesToIds the map where the relations between filenames and string IDs are stored
+     * @param fileNamesToIds the map where the relations between filenames and string IDs are stored
      * @param idsToDialogs   the map where the relations between string IDs and dialog texts are stored
      */
-    HtmlCreator(SortedMap<String, List<Integer>> filenamesToIds, SortedMap<Integer, DialogString> idsToDialogs) {
-        this.filenamesToIds = filenamesToIds;
+    HtmlCreator(SortedMap<String, List<Integer>> fileNamesToIds, SortedMap<Integer, TranslationString> idsToDialogs) {
+        this.fileNamesToIds = fileNamesToIds;
         this.idsToDialogs = idsToDialogs;
     }
 
@@ -386,10 +386,64 @@ class HtmlCreator {
                         "player. The string ID is clickable."));
         result.appendChild(information4);
 
-        // For every TLK file create its dialog blocks
-        for (Map.Entry<String, List<Integer>> each : filenamesToIds.entrySet()) {
-            result.appendChild(buildBlocks(document, each.getKey(), each.getValue()));
+        // For every dialog/script file create its dialog blocks
+        for (Map.Entry<String, List<Integer>> each : fileNamesToIds.entrySet()) {
+            TranslationString.Type type = idsToDialogs.get(each.getValue().get(0)).getType();
+            if (type == TranslationString.Type.SCRIPT_HEAD || type == TranslationString.Type.SCRIPT_JOURNAL) {
+                result.appendChild(buildScriptBlock(document, each.getKey(), each.getValue()));
+            } else {
+                result.appendChild(buildBlocks(document, each.getKey(), each.getValue()));
+            }
         }
+
+        return result;
+    }
+
+    /**
+     * Creates a script block for a given reference string ID list of a "HEAD" and "JOURNAL" strings.
+     *
+     * @param document  the DOM document
+     * @param file      the file name
+     * @param scriptIds the string IDs of the reference HEAD and JOURNAL strings
+     * @return a div element containing all dialog blocks of the given file
+     */
+    private Element buildScriptBlock(Document document, String file, List<Integer> scriptIds) {
+        Element result = document.createElement("div");
+        result.setAttribute("class", "blocks");
+
+        Element h2 = document.createElement("h2");
+        h2.appendChild(document.createTextNode("// File " + file));
+        result.appendChild(h2);
+
+        Element p = document.createElement("p");
+        p.setAttribute("class", "block");
+        result.appendChild(p);
+
+        // Print every string ID of a script string
+        for (Integer each : scriptIds) {
+            // Create a span element with the reference string ID
+            Element script = document.createElement("span");
+            script.setAttribute("id", "id" + each);
+            script.setIdAttribute("id", true);
+            script.setAttribute("class", "script");
+            script.appendChild(document.createTextNode(
+                    idsToDialogs.get(each).getType() == TranslationString.Type.SCRIPT_HEAD ? "HEAD " : "JOURNAL "));
+            p.appendChild(script);
+
+            // Create a span element with the reference anchor ID
+            Element scriptLink = document.createElement("span");
+            scriptLink.setAttribute("class", "idlink");
+            scriptLink.appendChild(document.createTextNode("#" + each));
+            script.appendChild(scriptLink);
+
+            // Create a span element with the reference text
+            Element scriptText = document.createElement("span");
+            scriptText.setAttribute("class", "text");
+            scriptText.appendChild(document.createTextNode(idsToDialogs.get(each).getText(file)));
+            p.appendChild(scriptText);
+        }
+
+        System.out.printf("Write HTML: %s%n", file);
 
         return result;
     }
@@ -399,7 +453,7 @@ class HtmlCreator {
      * on of the given string IDs of "SAY" strings.
      *
      * @param document the DOM document
-     * @param file     the filename
+     * @param file     the file name
      * @param sayIds   the string IDs of the reference SAY strings
      * @return a div element containing all dialog blocks of the given file
      */
@@ -410,7 +464,7 @@ class HtmlCreator {
         // For every string ID of a SAY string create a dialog block
         for (int i = 0; i < sayIds.size(); i++) {
             Element h2 = document.createElement("h2");
-            h2.appendChild(document.createTextNode("// File " + file + ".d"));
+            h2.appendChild(document.createTextNode("// File " + file));
             result.appendChild(h2);
 
             result.appendChild(buildBlock(document, sayIds.get(i)));
@@ -653,7 +707,8 @@ class HtmlCreator {
         styles.append("p.block { background-color: rgba(255, 255, 255, 0.025); padding: 0.4em; border-radius: " +
                 "0.1em; display: grid; grid-template-columns: auto 1fr; grid-gap: 0.1em 0.6em; overflow: hidden; " +
                 "white-space: nowrap; }\n");
-        styles.append("span.say { color: rgb(174, 129, 255); display: inline-block; padding-bottom: 0.5em;}\n");
+        styles.append("span.say, span.script { color: rgb(174, 129, 255); display: inline-block; padding-bottom: " +
+                "0.5em;}\n");
         styles.append("span.text { color: rgb(142, 137, 113); display: inline-block; }\n");
         styles.append("span.supporttext { color: rgb(99, 95, 79); display: inline-block; }\n");
         styles.append("span.reply, span.journal { color: rgb(174, 129, 255); display: inline-block; padding-left: " +

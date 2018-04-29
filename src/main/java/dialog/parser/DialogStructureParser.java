@@ -5,7 +5,9 @@
  * as published by Sam Hocevar. See the COPYING file for more details.
  */
 
-package tlk;
+package dialog.parser;
+
+import dialog.TranslationString;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,12 +18,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class is responsible for parsing a TLK file and extracting the dialog structure of dialog strings. For every
+ * This class is responsible for parsing a dialog file and extracting the dialog structure of dialog strings. For every
  * string its children and parents are searched and linked to each other so that dialog trees can be build.
  */
-class StructureParser {
+public class DialogStructureParser {
 
-    private final static Pattern FILENAME = Pattern.compile("// argument : (.*)\\.DLG");
     private final static Pattern BEGIN = Pattern.compile("~ THEN BEGIN (\\d+)");
     private final static Pattern END = Pattern.compile("END[\\r\\n]");
     private final static Pattern SAY = Pattern.compile("SAY #(\\d+)");
@@ -30,37 +31,33 @@ class StructureParser {
     private final static Pattern JOURNAL = Pattern.compile("JOURNAL #(\\d+)");
     private final static Pattern ADDJOURNALENTRY = Pattern.compile("AddJournalEntry\\((\\d+)");
     private final static Pattern EXTERN = Pattern.compile("EXTERN ~([^~]*)~ (\\d+)");
-    private final SortedMap<Integer, DialogString> idsToDialogs;
+    private final SortedMap<Integer, TranslationString> idsToDialogs;
     private final SortedMap<String, Integer> internalIdsToIds;
 
     /**
-     * Constructs a new structure parser that parses a TLK file. The extracted structures are stored in the dialog
+     * Constructs a new structure parser that parses a dialog file. The extracted structures are stored in the dialog
      * strings of the given maps.
      *
      * @param idsToDialogs     the map where the relations between string IDs and dialog texts are stored
      * @param internalIdsToIds the map where the relations between internal IDs and string IDs are stored
      */
-    StructureParser(SortedMap<Integer, DialogString> idsToDialogs, SortedMap<String, Integer> internalIdsToIds) {
+    public DialogStructureParser(SortedMap<Integer, TranslationString> idsToDialogs,
+                                 SortedMap<String, Integer> internalIdsToIds) {
         this.idsToDialogs = idsToDialogs;
         this.internalIdsToIds = internalIdsToIds;
     }
 
     /**
-     * Parses a TLK file and extracts the structure of the contained dialogs.
+     * Parses a dialog file and extracts the structure of the contained dialogs.
      *
-     * @param file the input file containing TLK dialogs
+     * @param file the input file containing dialogs
      * @throws IOException if an exception of some sort has occurred
      */
-    void parse(Path file) throws IOException {
+    public void parse(Path file) throws IOException {
         // Read the file
         String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
-        // Read the internal file name and use it as part of the internal ID for every string in this file
-        Matcher matcher = FILENAME.matcher(fileContent);
-        //noinspection ResultOfMethodCallIgnored
-        matcher.find();
-        String fileName = matcher.group(1);
         // Now search for string IDs
-        parseBegin(fileName, fileContent);
+        parseBegin(file.getFileName().toString(), fileContent);
     }
 
     /**
@@ -68,10 +65,10 @@ class StructureParser {
      * given file content that begins with "BEGIN" and ends with the nearest "END". Every block of the given file is
      * then examined more deeply.
      *
-     * @param filename    the filename
+     * @param fileName    the fileName
      * @param fileContent the file's content
      */
-    private void parseBegin(String filename, String fileContent) {
+    private void parseBegin(String fileName, String fileContent) {
         Matcher beginMatcher = BEGIN.matcher(fileContent);
         // Find all occurrences of "BEGIN"
         while (beginMatcher.find()) {
@@ -81,7 +78,7 @@ class StructureParser {
             //noinspection ResultOfMethodCallIgnored
             endMatcher.find(beginMatcher.start());
             // Parse the content of the current dialog block bounded by "BEGIN" and "END"
-            parseBlock(filename, fileContent.substring(beginMatcher.end(), endMatcher.start()));
+            parseBlock(fileName, fileContent.substring(beginMatcher.end(), endMatcher.start()));
         }
     }
 

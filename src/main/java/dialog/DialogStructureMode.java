@@ -5,8 +5,12 @@
  * as published by Sam Hocevar. See the COPYING file for more details.
  */
 
-package tlk;
+package dialog;
 
+import dialog.parser.DialogContentParser;
+import dialog.parser.DialogStructureParser;
+import dialog.parser.ScriptContentParser;
+import dialog.parser.ScriptStructureParser;
 import main.IMode;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,9 +26,9 @@ import java.util.regex.Pattern;
  */
 public class DialogStructureMode implements IMode {
 
-    private SortedMap<Integer, DialogString> idsToDialogs = new TreeMap<>();
+    private SortedMap<Integer, TranslationString> idsToDialogs = new TreeMap<>();
     private SortedMap<String, Integer> internalIdsToIds = new TreeMap<>();
-    private SortedMap<String, List<Integer>> filenamesToIds = new TreeMap<>();
+    private SortedMap<String, List<Integer>> fileNamesToIds = new TreeMap<>();
 
     /**
      * Creates a TXT document that lists groups of strings. A group of strings contains strings that are parents or
@@ -50,7 +54,7 @@ public class DialogStructureMode implements IMode {
      *                                      transformation.
      */
     private void createHtml(Path folder) throws ParserConfigurationException, TransformerException {
-        HtmlCreator htmlCreator = new HtmlCreator(filenamesToIds, idsToDialogs);
+        HtmlCreator htmlCreator = new HtmlCreator(fileNamesToIds, idsToDialogs);
         htmlCreator.create(folder);
     }
 
@@ -62,26 +66,30 @@ public class DialogStructureMode implements IMode {
      * @param maxInclusive the maximum string ID, inclusive
      */
     private void chopMappingsToRange(int minInclusive, int maxInclusive) {
-        for (Iterator<Map.Entry<Integer, DialogString>> iterator = idsToDialogs.entrySet().iterator();
+        for (Iterator<Map.Entry<Integer, TranslationString>> iterator = idsToDialogs.entrySet().iterator();
              iterator.hasNext(); ) {
-            Map.Entry<Integer, DialogString> entry = iterator.next();
+            Map.Entry<Integer, TranslationString> entry = iterator.next();
             // Check every id if it is not in the given range
             if (entry.getKey() < minInclusive || entry.getKey() > maxInclusive) {
                 // Remove all links between itself and its children
-                for (Integer each : entry.getValue().getChildren()) {
+                for (int each : entry.getValue().getChildren()) {
                     idsToDialogs.get(each).removeParent(entry.getKey());
                 }
                 // Remove all links between itself and its parents
-                for (Integer each : entry.getValue().getParents()) {
+                for (int each : entry.getValue().getParents()) {
                     idsToDialogs.get(each).removeChild(entry.getKey());
+                }
+                // Remove all links between itself and its neighbors
+                for (int each : entry.getValue().getNeighbors()) {
+                    idsToDialogs.get(each).removeNeighbor(entry.getKey());
                 }
                 // Remove itself
                 iterator.remove();
             }
         }
-        for (Iterator<Map.Entry<String, List<Integer>>> iterator = filenamesToIds.entrySet().iterator();
+        for (Iterator<Map.Entry<String, List<Integer>>> iterator = fileNamesToIds.entrySet().iterator();
              iterator.hasNext(); ) {
-            // Remove all entries from filenamesToIds with IDs that are removed from idsToDialogs
+            // Remove all entries from fileNamesToIds with IDs that are removed from idsToDialogs
             Map.Entry<String, List<Integer>> entry = iterator.next();
             entry.getValue().removeIf(i -> !idsToDialogs.containsKey(i));
             if (entry.getValue().isEmpty()) {
@@ -99,8 +107,8 @@ public class DialogStructureMode implements IMode {
      * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private void parseStructure(Path folder, int total) throws IOException {
-        StructureParser structureParser = new StructureParser(idsToDialogs, internalIdsToIds);
+    private void parseDStructure(Path folder, int total) throws IOException {
+        DialogStructureParser structureParser = new DialogStructureParser(idsToDialogs, internalIdsToIds);
         DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
         int i = 1;
         for (Path each : files) {
@@ -111,15 +119,15 @@ public class DialogStructureMode implements IMode {
     }
 
     /**
-     * Parses the content of all d files in the given folder. The d files are searched for string IDs, internal TLK IDs
-     * and the corresponding string itself.
+     * Parses the content of all d files in the given folder. The d files are searched for string IDs, internal dialog
+     * IDs and the corresponding string itself.
      *
      * @param folder the input folder
      * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private void parseContent(Path folder, int total) throws IOException {
-        ContentParser contentParser = new ContentParser(idsToDialogs, internalIdsToIds, filenamesToIds);
+    private void parseDContent(Path folder, int total) throws IOException {
+        DialogContentParser contentParser = new DialogContentParser(idsToDialogs, internalIdsToIds, fileNamesToIds);
         DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
         int i = 1;
         for (Path each : files) {
@@ -130,21 +138,59 @@ public class DialogStructureMode implements IMode {
     }
 
     /**
-     * Creates a default entry in the id/dialog map used for erroneous structures during parsing
+     * Parses the content of all baf files in the given folder. The baf files are searched for string IDs.
+     *
+     * @param folder the input folder
+     * @param total  the total number of baf files
+     * @throws IOException if an I/O error occurs
      */
-    private void prepareMappings() {
-        idsToDialogs.put(-1, DialogString.create("INVALID REFERENCE", DialogString.Type.ERROR, ""));
+    private void parseBafContent(Path folder, int total) throws IOException {
+        ScriptContentParser scriptParser = new ScriptContentParser(idsToDialogs, fileNamesToIds);
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.BAF");
+        int i = 1;
+        for (Path each : files) {
+            System.out.printf("Parse content %d/%d: %s%n", i, total, each.getFileName());
+            scriptParser.parse(each);
+            i++;
+        }
     }
 
     /**
-     * Counts the .d files in the given folder
+     * Parses the script structure of all baf files in the given folder. The baf files are searched for their
+     * neighbors.
      *
      * @param folder the input folder
-     * @return the number of .d files
+     * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private int countDFiles(Path folder) throws IOException {
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
+    private void parseBafStructure(Path folder, int total) throws IOException {
+        ScriptStructureParser structureParser = new ScriptStructureParser(idsToDialogs, fileNamesToIds);
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.BAF");
+        int i = 1;
+        for (Path each : files) {
+            System.out.printf("Parse structure %d/%d: %s%n", i, total, each.getFileName());
+            structureParser.parse(each);
+            i++;
+        }
+    }
+
+    /**
+     * Creates a default entry in the id/dialog map used for erroneous structures during parsing
+     */
+    private void prepareMappings() {
+        idsToDialogs.put(-1, TranslationString.create("INVALID REFERENCE", TranslationString.Type.ERROR, ""));
+    }
+
+    /**
+     * Counts the files with the given file extension in the given folder
+     *
+     * @param folder        the input folder
+     * @param fileExtension the file extension
+     * @return the number of files with the given file extension
+     * @throws IOException if an I/O error occurs
+     */
+    private int countFiles(Path folder, String fileExtension) throws IOException {
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*." + fileExtension);
         int result = 0;
         for (Path ignored : files) {
             result++;
@@ -244,12 +290,21 @@ public class DialogStructureMode implements IMode {
 
         // Prepare the ID mappings
         prepareMappings();
+
         // Count the d files
-        int count = countDFiles(folder);
-        // Find all string IDs
-        parseContent(folder, count);
-        // Find all string relations
-        parseStructure(folder, count);
+        int countD = countFiles(folder, "d");
+        // Find all string IDs in d files
+        parseDContent(folder, countD);
+        // Find all string relations in d files
+        parseDStructure(folder, countD);
+
+        // Count the baf files
+        int countBaf = countFiles(folder, "BAF");
+        // Find all string IDs in baf files
+        parseBafContent(folder, countBaf);
+        // Find all string relations in baf files
+        parseBafStructure(folder, countBaf);
+
         // Chop string IDs to user defined ID range
         chopMappingsToRange(rangeMinInclusive, rangeMaxInclusive);
         // Create the HTML dialog file
