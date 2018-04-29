@@ -32,11 +32,11 @@ import java.util.regex.Pattern;
  */
 public class ScriptContentParser {
 
-    private final static Pattern ADDJOURNALENTRY = Pattern.compile("AddJournalEntry\\((\\d+)\\) {2}// ([^\\n]+)");
+    private final static Pattern ADDJOURNALENTRY = Pattern.compile("AddJournalEntry\\((\\d+),[^)]+\\) {2}// ([^\\n]+)");
     private final static Pattern DISPLAYSTRINGHEAD =
-            Pattern.compile("DisplayStringHead\\([^,]+,(\\d+)\\) {2}// ([^\\n]+)");
+            Pattern.compile("DisplayStringHead\\(\"([^\"]+)\",(\\d+)\\) {2}// ([^\\n]+)");
     private final static Pattern DISPLAYSTRINGWAIT =
-            Pattern.compile("DisplayStringWait\\([^,]+,(\\d+)\\) {2}// ([^\\n]+)");
+            Pattern.compile("DisplayStringWait\\(\"([^\"]+)\",(\\d+)\\) {2}// ([^\\n]+)");
 
     private final SortedMap<Integer, TranslationString> idsToDialogs;
     private SortedMap<String, List<Integer>> fileNamesToIds;
@@ -89,14 +89,15 @@ public class ScriptContentParser {
         Matcher displayStringHeadMatcher = DISPLAYSTRINGHEAD.matcher(content);
         while (displayStringHeadMatcher.find()) {
             // Parse the corresponding string ID
-            int id = Integer.valueOf(displayStringHeadMatcher.group(1));
+            int id = Integer.valueOf(displayStringHeadMatcher.group(2));
             // If the string ID was already parsed in a dialog file, move on
             if (idsToDialogs.containsKey(id)) {
                 continue;
             }
             // Parse the corresponding string text
             TranslationString dialogString = TranslationString
-                    .create(displayStringHeadMatcher.group(2), TranslationString.Type.SCRIPT_HEAD, filename);
+                    .create("(" + displayStringHeadMatcher.group(1) + ") " + displayStringHeadMatcher.group(3),
+                            TranslationString.Type.SCRIPT_HEAD, filename);
             // Store the DISPLAYSTRINGHEAD string with its IDs
             idsToDialogs.put(id, dialogString);
             ids.add(id);
@@ -106,14 +107,15 @@ public class ScriptContentParser {
         Matcher displayStringWaitMatcher = DISPLAYSTRINGWAIT.matcher(content);
         while (displayStringWaitMatcher.find()) {
             // Parse the corresponding string ID
-            int id = Integer.valueOf(displayStringWaitMatcher.group(1));
+            int id = Integer.valueOf(displayStringWaitMatcher.group(2));
             // If the string ID was already parsed in a dialog file, move on
             if (idsToDialogs.containsKey(id)) {
                 continue;
             }
             // Parse the corresponding string text
             TranslationString dialogString = TranslationString
-                    .create(displayStringWaitMatcher.group(2), TranslationString.Type.SCRIPT_HEAD, filename);
+                    .create("(" + displayStringWaitMatcher.group(1) + ") " + displayStringWaitMatcher.group(3),
+                            TranslationString.Type.SCRIPT_HEAD, filename);
             // Store the DISPLAYSTRINGWAIT string with its IDs
             idsToDialogs.put(id, dialogString);
             ids.add(id);
