@@ -8,7 +8,6 @@
 package dialog;
 
 import dialog.linearizer.CycleDialogLinearizer;
-import dialog.linearizer.IDialogLinearizer;
 import dialog.linearizer.NonCycleDialogLinearizer;
 import dialog.linearizer.ScriptLinearizer;
 
@@ -28,7 +27,6 @@ class GroupCreator {
     final static String OUTPUT_FILENAME = "DialogGroups.txt";
     private final int minInclusive;
     private final int maxInclusive;
-    private Map<String, IDialogLinearizer> linearizers = new HashMap<>();
     private SortedMap<Integer, TranslationString> idsToDialogs;
 
     /**
@@ -43,10 +41,6 @@ class GroupCreator {
         this.idsToDialogs = idsToDialogs;
         this.minInclusive = minInclusive;
         this.maxInclusive = maxInclusive;
-
-        linearizers.put("cycle", new CycleDialogLinearizer());
-        linearizers.put("noncycle", new NonCycleDialogLinearizer());
-        linearizers.put("script", new ScriptLinearizer());
     }
 
     /**
@@ -56,40 +50,42 @@ class GroupCreator {
      * @throws IOException if an I/O error occurs
      */
     void create(Path folder) throws IOException {
-        Set<Set<Integer>> groups = new TreeSet<>(Comparator.comparingInt(Collections::min));
+        List<Group> groups = new LinkedList<>();
         // Create a group that contains all string IDs that are in the parameter-defined range but not in idsToDialogs
-        Set<Integer> nonDialogGroup = createNonDialogGroup();
+        Group nonDialogScriptGroup = createNonDialogScriptGroup();
         // Go on until idsToDialogs is empty
         while (!idsToDialogs.isEmpty()) {
             // Take the first key and construct its group
             int id = idsToDialogs.firstKey();
 
-            Set<Integer> linearizedIds;
+            Group linearizedGroup;
             Map<Integer, TranslationString> group;
             switch (idsToDialogs.get(id).getType()) {
                 case DIALOG:
                 case JOURNAL:
                     group = createDialogGroup(id);
+                    linearizedGroup = new Group(Group.Type.DIALOG);
                     try {
-                        linearizedIds = linearizers.get("noncycle").linearize(group);
+                        linearizedGroup.addIds(NonCycleDialogLinearizer.getInstance().linearize(group));
                     } catch (IllegalArgumentException ignored) {
-                        linearizedIds = linearizers.get("cycle").linearize(group);
+                        linearizedGroup.addIds(CycleDialogLinearizer.getInstance().linearize(group));
                     }
                     break;
                 case SCRIPT_HEAD:
                 case SCRIPT_JOURNAL:
                     group = createScriptGroup(id);
-                    linearizedIds = linearizers.get("script").linearize(group);
+                    linearizedGroup = new Group(Group.Type.SCRIPT);
+                    linearizedGroup.addIds(ScriptLinearizer.getInstance().linearize(group));
                     break;
                 default:
-                    linearizedIds = Collections.emptySet();
+                    linearizedGroup = new Group(Group.Type.NOT_USED);
             }
-            groups.add(linearizedIds);
+            groups.add(linearizedGroup);
         }
         // Write the groups into a file
-        writeDialogSetsToFile(groups, folder);
+        writeGroupsToFile(groups, folder);
         // Add as the last group the non dialog IDs
-        writeNonDialogStringsToFile(nonDialogGroup, folder);
+        writeNonDialogScriptGroupToFile(nonDialogScriptGroup, folder);
     }
 
     /**
@@ -141,16 +137,16 @@ class GroupCreator {
      * @param folder the output folder
      * @throws IOException if an I/O error occurs
      */
-    private void writeNonDialogStringsToFile(Set<Integer> group, Path folder) throws IOException {
+    private void writeNonDialogScriptGroupToFile(Group group, Path folder) throws IOException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(
                 Files.newBufferedWriter(folder.resolve(OUTPUT_FILENAME), StandardOpenOption.APPEND))) {
             bufferedWriter.newLine();
-            bufferedWriter.write("// Group: non dialog IDs, " + group.size() + " strings");
+            bufferedWriter.write("// Group: non dialog IDs, " + group.getIds().size() + " strings");
             bufferedWriter.newLine();
             bufferedWriter.newLine();
             // Print every child of the group
-            for (int eachId : group) {
-                bufferedWriter.write(String.valueOf(eachId));
+            for (int each : group.getIds()) {
+                bufferedWriter.write(String.valueOf(each));
                 bufferedWriter.newLine();
             }
         }
@@ -164,7 +160,7 @@ class GroupCreator {
      * @param folder the output folder
      * @throws IOException if an I/O error occurs
      */
-    private void writeDialogSetsToFile(Set<Set<Integer>> groups, Path folder) throws IOException {
+    private void writeGroupsToFile(List<Group> groups, Path folder) throws IOException {
         // Delete the old file and create a new one
         Files.deleteIfExists(folder.resolve(OUTPUT_FILENAME));
         Path file = Files.createFile(folder.resolve(OUTPUT_FILENAME));
@@ -172,14 +168,15 @@ class GroupCreator {
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file)) {
             int count = 1;
             // Loop through every group
-            for (Set<Integer> eachGroup : groups) {
+            for (Group eachGroup : groups) {
                 bufferedWriter.newLine();
-                bufferedWriter.write("// Group " + count + ", " + eachGroup.size() + " strings");
+                bufferedWriter.write("// Group " + count + " (" + eachGroup.getType().toString().toLowerCase() + "), " +
+                        eachGroup.getIds().size() + " strings");
                 count++;
                 bufferedWriter.newLine();
                 bufferedWriter.newLine();
                 // Print every child of the current group
-                for (int eachId : eachGroup) {
+                for (int eachId : eachGroup.getIds()) {
                     bufferedWriter.write(String.valueOf(eachId));
                     bufferedWriter.newLine();
                 }
@@ -188,18 +185,22 @@ class GroupCreator {
     }
 
     /**
-     * Creates a group of string IDs, that means a set of string IDs, which strings are not part of any dialog. For that
-     * the string IDs of idsToDialogs are subtracted from the list of all string IDs given by the user-defined ID range.
-     * The remaining IDs are not part of any dialog and their strings may be items or are unused.
+     * Creates a group of string IDs, that means a set of string IDs, which strings are not part of any dialog or
+     * script. For that the string IDs of idsToDialogs are subtracted from the list of all string IDs given by the
+     * user-defined ID range. The remaining IDs are not part of any dialog or script and their strings may be items or
+     * are unused.
      *
-     * @return the group of strings containing all IDs that are not part of dialogs.
+     * @return the group of strings containing all IDs that are not part of dialogs or scripts.
      */
-    private Set<Integer> createNonDialogGroup() {
-        Set<Integer> result = new TreeSet<>();
+    private Group createNonDialogScriptGroup() {
+        Group result = new Group(Group.Type.NOT_USED);
+        List<Integer> tmp = new LinkedList<>();
         for (int i = minInclusive; i <= maxInclusive; i++) {
-            result.add(i);
+            if (!idsToDialogs.containsKey(i)) {
+                tmp.add(i);
+            }
         }
-        result.removeAll(idsToDialogs.keySet());
+        result.addIds(tmp);
         return result;
     }
 }

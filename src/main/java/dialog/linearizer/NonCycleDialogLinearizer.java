@@ -4,19 +4,30 @@ import dialog.TranslationString;
 
 import java.util.*;
 
-public class NonCycleDialogLinearizer implements IDialogLinearizer {
+public class NonCycleDialogLinearizer {
 
     private Map<Integer, TranslationString> idsToDialogs;
 
+    private NonCycleDialogLinearizer() {
+    }
+
     /**
-     * Converts a set of string IDs that are somehow connected to each other into a linearized set.
+     * Returns a new instance of the class NonCycleDialogLinearizer.
+     *
+     * @return an instance of NonCycleDialogLinearizer
+     */
+    public static NonCycleDialogLinearizer getInstance() {
+        return new NonCycleDialogLinearizer();
+    }
+
+    /**
+     * Converts a set of string IDs that are somehow connected to each other into a linearized list.
      *
      * @param idsToDialogs the map where the relations between string IDs and dialog texts are stored
-     * @return a linearized sorted set of string IDs
+     * @return a linearized list of string IDs
      * @throws IllegalArgumentException if idsToDialogs contains mappings that result in cycles in the dialog structure
      */
-    @Override
-    public Set<Integer> linearize(Map<Integer, TranslationString> idsToDialogs) throws IllegalArgumentException {
+    public List<Integer> linearize(Map<Integer, TranslationString> idsToDialogs) throws IllegalArgumentException {
         this.idsToDialogs = idsToDialogs;
         for (int each : this.idsToDialogs.keySet()) {
             // Check for every string whether itself or one of its children is part of a cyclic dialog structure
@@ -37,11 +48,11 @@ public class NonCycleDialogLinearizer implements IDialogLinearizer {
      * @param roots the string IDs of all dialog roots
      * @return the set that collects the linearized string IDs
      */
-    private Set<Integer> createOrder(Set<Integer> roots) {
+    private List<Integer> createOrder(Set<Integer> roots) {
         // Initialize the temporary list that contains string IDs which need to be visited
         Deque<Integer> deque = new LinkedList<>(roots);
         // Initialize the result that contains at the end all ordered string IDs in their order
-        Set<Integer> result = new LinkedHashSet<>(idsToDialogs.size());
+        List<Integer> result = new LinkedList<>();
 
         // While the temporary list contains string IDs, continue
         while (!deque.isEmpty()) {
@@ -96,7 +107,7 @@ public class NonCycleDialogLinearizer implements IDialogLinearizer {
      * @param deque   the string IDs
      * @param visited the visited string IDs
      */
-    private void rotateToCandidate(Deque<Integer> deque, Set<Integer> visited, int iteration) {
+    private void rotateToCandidate(Deque<Integer> deque, List<Integer> visited, int iteration) {
         // If the iteration count is higher than the size of deque then there is no good candidate which fulfills 1)
         // and 2). Rotate to the minimal string ID instead
         if (iteration >= deque.size()) {
