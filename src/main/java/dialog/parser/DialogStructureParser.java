@@ -57,7 +57,8 @@ public class DialogStructureParser {
         // Read the file
         String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         // Now search for string IDs
-        parseBegin(file.getFileName().toString(), fileContent);
+        parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
+                fileContent);
     }
 
     /**

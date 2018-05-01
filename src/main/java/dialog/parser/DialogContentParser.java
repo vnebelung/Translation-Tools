@@ -68,7 +68,8 @@ public class DialogContentParser {
         String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         // Read the internal file name and use it as part of the internal ID for every string in this file
         // Now search for string IDs
-        parseBegin(file.getFileName().toString(), fileContent);
+        parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
+                fileContent);
     }
 
     /**
