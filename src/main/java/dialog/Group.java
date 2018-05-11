@@ -1,13 +1,13 @@
 package dialog;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class Group implements Comparable<Group> {
 
     private final Type type;
-    private Set<Integer> ids = new TreeSet<>();
+    private Set<Integer> ids = new LinkedHashSet<>();
 
     public Group(Type type) {
         this.type = type;

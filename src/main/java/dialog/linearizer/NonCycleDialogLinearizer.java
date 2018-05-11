@@ -164,7 +164,7 @@ public class NonCycleDialogLinearizer {
      *
      * @param id           the string ID
      * @param predecessors all predecessors of the given string
-     * @return true, if the string with the given ID and one of its predecessors are part of a cyclic dialog structure
+     * @return true if the string with the given ID and one of its predecessors are part of a cyclic dialog structure
      */
     private boolean checkForCycles(int id, Set<Integer> predecessors) {
         // If the current ID is already one of its predecessors, we have found a cycle
@@ -173,7 +173,7 @@ public class NonCycleDialogLinearizer {
         }
         // Otherwise loop through all children
         for (int each : idsToDialogs.get(id).getChildren()) {
-            Set<Integer> childPredecessors = new TreeSet<>(predecessors);
+            Set<Integer> childPredecessors = new HashSet<>(predecessors);
             childPredecessors.add(id);
             if (checkForCycles(each, childPredecessors)) {
                 return true;
