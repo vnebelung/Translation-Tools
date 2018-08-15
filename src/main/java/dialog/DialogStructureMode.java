@@ -7,10 +7,7 @@
 
 package dialog;
 
-import dialog.parser.DialogContentParser;
-import dialog.parser.DialogStructureParser;
-import dialog.parser.ScriptContentParser;
-import dialog.parser.ScriptStructureParser;
+import dialog.parser.*;
 import main.IMode;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -100,76 +97,18 @@ public class DialogStructureMode implements IMode {
     }
 
     /**
-     * Parses the dialog structure of all d files in the given folder. The d files are searched for their relation to
-     * each other, so that dialog trees can be extracted.
+     * Parses all files in the given folder that the given parser can handle.
      *
      * @param folder the input folder
-     * @param total  the total number of d files
      * @throws IOException if an I/O error occurs
      */
-    private void parseDStructure(Path folder, int total) throws IOException {
-        DialogStructureParser structureParser = new DialogStructureParser(idsToDialogs, internalIdsToIds);
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
+    private void parseFiles(IParser parser, Path folder) throws IOException {
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*." + parser.getAllowedExtension());
+        int totalNumFiles = countFiles(folder, parser.getAllowedExtension());
         int i = 1;
-        for (Path each : files) {
-            System.out.printf("Parse structure %d/%d: %s%n", i, total, each.getFileName());
-            structureParser.parse(each);
-            i++;
-        }
-    }
-
-    /**
-     * Parses the content of all d files in the given folder. The d files are searched for string IDs, internal dialog
-     * IDs and the corresponding string itself.
-     *
-     * @param folder the input folder
-     * @param total  the total number of d files
-     * @throws IOException if an I/O error occurs
-     */
-    private void parseDContent(Path folder, int total) throws IOException {
-        DialogContentParser contentParser = new DialogContentParser(idsToDialogs, internalIdsToIds, fileNamesToIds);
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.d");
-        int i = 1;
-        for (Path each : files) {
-            System.out.printf("Parse content %d/%d: %s%n", i, total, each.getFileName());
-            contentParser.parse(each);
-            i++;
-        }
-    }
-
-    /**
-     * Parses the content of all baf files in the given folder. The baf files are searched for string IDs.
-     *
-     * @param folder the input folder
-     * @param total  the total number of baf files
-     * @throws IOException if an I/O error occurs
-     */
-    private void parseBafContent(Path folder, int total) throws IOException {
-        ScriptContentParser scriptParser = new ScriptContentParser(idsToDialogs, fileNamesToIds);
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.BAF");
-        int i = 1;
-        for (Path each : files) {
-            System.out.printf("Parse content %d/%d: %s%n", i, total, each.getFileName());
-            scriptParser.parse(each);
-            i++;
-        }
-    }
-
-    /**
-     * Parses the script structure of all baf files in the given folder. The baf files are searched for their
-     * neighbors.
-     *
-     * @param folder the input folder
-     * @param total  the total number of d files
-     * @throws IOException if an I/O error occurs
-     */
-    private void parseBafStructure(Path folder, int total) throws IOException {
-        ScriptStructureParser structureParser = new ScriptStructureParser(idsToDialogs, fileNamesToIds);
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.BAF");
-        int i = 1;
-        for (Path each : files) {
-            System.out.printf("Parse structure %d/%d: %s%n", i, total, each.getFileName());
-            structureParser.parse(each);
+        for (Path file : files) {
+            System.out.printf("Parse %s %d/%d: %s%n", parser.getType(), i, totalNumFiles, file.getFileName());
+            parser.parse(file);
             i++;
         }
     }
@@ -291,19 +230,15 @@ public class DialogStructureMode implements IMode {
         // Prepare the ID mappings
         prepareMappings();
 
-        // Count the d files
-        int countD = countFiles(folder, "d");
         // Find all string IDs in d files
-        parseDContent(folder, countD);
+        parseFiles(new DialogContentParser(idsToDialogs, internalIdsToIds, fileNamesToIds), folder);
         // Find all string relations in d files
-        parseDStructure(folder, countD);
+        parseFiles(new DialogStructureParser(idsToDialogs, internalIdsToIds), folder);
 
-        // Count the baf files
-        int countBaf = countFiles(folder, "BAF");
         // Find all string IDs in baf files
-        parseBafContent(folder, countBaf);
+        parseFiles(new ScriptContentParser(idsToDialogs, fileNamesToIds), folder);
         // Find all string relations in baf files
-        parseBafStructure(folder, countBaf);
+        parseFiles(new ScriptStructureParser(idsToDialogs, fileNamesToIds), folder);
 
         // Chop string IDs to user defined ID range
         chopMappingsToRange(rangeMinInclusive, rangeMaxInclusive);

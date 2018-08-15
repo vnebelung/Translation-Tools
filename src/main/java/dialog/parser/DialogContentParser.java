@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * This class is responsible for parsing a dialog file and extracting all string IDs and so-called internal string IDs.
  * Latter are used inside a single dialog file to reference particular strings.
  */
-public class DialogContentParser {
+public class DialogContentParser implements IParser {
 
     private final static Pattern BEGIN = Pattern.compile("~ THEN BEGIN (\\d+)");
     private final static Pattern END = Pattern.compile("END[\\r\\n]");
@@ -57,12 +57,7 @@ public class DialogContentParser {
         this.filenamesToIds = filenamesToIds;
     }
 
-    /**
-     * Parses a dialog file and extracts all string IDs and internal string IDs.
-     *
-     * @param file the input file containing dialogs
-     * @throws IOException if an exception of some sort has occurred
-     */
+    @Override
     public void parse(Path file) throws IOException {
         // Read the file
         String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
@@ -70,6 +65,16 @@ public class DialogContentParser {
         // Now search for string IDs
         parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
                 fileContent);
+    }
+
+    @Override
+    public String getAllowedExtension() {
+        return "d";
+    }
+
+    @Override
+    public String getType() {
+        return "content";
     }
 
     /**

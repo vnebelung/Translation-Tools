@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * This class is responsible for parsing a dialog file and extracting the dialog structure of dialog strings. For every
  * string its children and parents are searched and linked to each other so that dialog trees can be build.
  */
-public class DialogStructureParser {
+public class DialogStructureParser implements IParser {
 
     private final static Pattern BEGIN = Pattern.compile("~ THEN BEGIN (\\d+)");
     private final static Pattern END = Pattern.compile("END[\\r\\n]");
@@ -47,18 +47,23 @@ public class DialogStructureParser {
         this.internalIdsToIds = internalIdsToIds;
     }
 
-    /**
-     * Parses a dialog file and extracts the structure of the contained dialogs.
-     *
-     * @param file the input file containing dialogs
-     * @throws IOException if an exception of some sort has occurred
-     */
+    @Override
     public void parse(Path file) throws IOException {
         // Read the file
         String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         // Now search for string IDs
         parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
                 fileContent);
+    }
+
+    @Override
+    public String getAllowedExtension() {
+        return "d";
+    }
+
+    @Override
+    public String getType() {
+        return "structure";
     }
 
     /**

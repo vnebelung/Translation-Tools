@@ -1,4 +1,4 @@
-package items;
+package dialog.creature;
 
 import main.IMode;
 
@@ -12,12 +12,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class extracts string IDs from ITM files.
+ * This class extracts string IDs from CRE files.
  */
-public class ItemMode implements IMode {
+public class CreatureMode implements IMode {
 
-    private final static String OUTPUT_FILENAME = "ItemStrings.txt";
-    private final static String OUTPUT_CSV_FILENAME = "ItemStrings.csv";
+    private final static String OUTPUT_FILENAME = "CreatureStrings.txt";
+    private final static String OUTPUT_CSV_FILENAME = "CreatureStrings.csv";
 
     /**
      * Invokes the user chosen functionality.
@@ -32,7 +32,7 @@ public class ItemMode implements IMode {
         Map<String, String> parametersToValues = checkParameters(parameters);
         if (parametersToValues == null) {
             System.out.println();
-            System.out.println("Usage: java -jar TranslationTools.jar items --folder <arg> --range <arg>-<arg>");
+            System.out.println("Usage: java -jar TranslationTools.jar creatures --folder <arg> --range <arg>-<arg>");
             System.out.println("--folder <arg>      = path to the folder containing the ITM files");
             System.out.println("--range <arg>-<arg> = numerical range of string IDs that should be parsed");
             return;
@@ -47,29 +47,29 @@ public class ItemMode implements IMode {
         int rangeMinInclusive = Integer.valueOf(rangeMatcher.group(1));
         int rangeMaxInclusive = Integer.valueOf(rangeMatcher.group(2));
 
-        Set<Item> items = parseItems(folder);
-        chopItemsToRange(items, rangeMinInclusive, rangeMaxInclusive);
-        // Write the item string IDs into a file
-        writeItemStringIdsToFile(items, folder, rangeMinInclusive, rangeMaxInclusive);
-        // Write item strings IDs into a CSV file
-        writeItemStringIdsToCsvFile(items, folder, rangeMinInclusive, rangeMaxInclusive);
+        Set<Creature> creatures = parseCreatures(folder);
+        chopCreaturesToRange(creatures, rangeMinInclusive, rangeMaxInclusive);
+        // Write the creature string IDs into a file
+        writeCreatureStringIdsToFile(creatures, folder, rangeMinInclusive, rangeMaxInclusive);
+        // Write creature string IDs into a CSV file
+        writeCreatureStringIdsToCsvFile(creatures, folder, rangeMinInclusive, rangeMaxInclusive);
 
-        System.out
-                .printf("Item strings written to '%s'%n", folder.resolve(OUTPUT_FILENAME).toAbsolutePath().toString());
+        System.out.printf("Creature strings written to '%s'%n",
+                folder.resolve(OUTPUT_FILENAME).toAbsolutePath().toString());
         System.out.printf("CSV written to '%s'%n", folder.resolve(OUTPUT_CSV_FILENAME).toAbsolutePath().toString());
     }
 
     /**
-     * Writes the string IDs of the given items into a CSV file to the given folder.
+     * Writes the string IDs of the given creatures into a CSV file to the given folder.
      *
-     * @param items        the parsed items
+     * @param creatures    the parsed creatures
      * @param folder       the output folder
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      * @throws IOException if an I/O error occurs
      */
-    private void writeItemStringIdsToCsvFile(Set<Item> items, Path folder, int minInclusive, int maxInclusive) throws
-            IOException {
+    private void writeCreatureStringIdsToCsvFile(Set<Creature> creatures, Path folder, int minInclusive,
+                                                 int maxInclusive) throws IOException {
         // Delete the old file and create a new one
         Files.deleteIfExists(folder.resolve(OUTPUT_CSV_FILENAME));
         Path file = Files.createFile(folder.resolve(OUTPUT_CSV_FILENAME));
@@ -77,26 +77,23 @@ public class ItemMode implements IMode {
         try (BufferedWriter bufferedWriter = new BufferedWriter(Files.newBufferedWriter(file))) {
             bufferedWriter
                     .write("\"The file can include string IDs out of the user-defined string range " + minInclusive +
-                            "-" + maxInclusive + "\",\"\",\"\",\"\",\"\"");
+                            "-" + maxInclusive + "\"");
             bufferedWriter.newLine();
-            bufferedWriter.write("\"\",\"\",\"\",\"\",\"\"");
+            bufferedWriter.write("\"\"");
             bufferedWriter.newLine();
-            bufferedWriter.write("\"ITM File\",\"General Name\",\"Identified Name\",\"General Description\"," +
-                    "\"Identified " + "Description\"");
+            bufferedWriter.write("\"CRE File\",\"Short Name\",\"Long Name\",\"Pertaining Strings\"");
             bufferedWriter.newLine();
-            for (Item each : items) {
+            for (Creature each : creatures) {
                 bufferedWriter.write('"');
                 bufferedWriter.write(String.valueOf(each.getFileName()));
                 bufferedWriter.write("\",\"");
-                bufferedWriter.write(String.valueOf((each.getGeneralName() == -1 ? "" : each.getGeneralName())));
+                bufferedWriter.write(String.valueOf((each.getShortName() == -1 ? "" : each.getShortName())));
                 bufferedWriter.write("\",\"");
-                bufferedWriter.write(String.valueOf((each.getIdentifiedName() == -1 ? "" : each.getIdentifiedName())));
-                bufferedWriter.write("\",\"");
-                bufferedWriter.write(String
-                        .valueOf((each.getGeneralDescription() == -1 ? "" : each.getGeneralDescription())));
-                bufferedWriter.write("\",\"");
-                bufferedWriter.write(String
-                        .valueOf((each.getIdentifiedDescription() == -1 ? "" : each.getIdentifiedDescription())));
+                bufferedWriter.write(String.valueOf((each.getLongName() == -1 ? "" : each.getLongName())));
+                for (int id : each.getPertainingStringsinRange(minInclusive, maxInclusive)) {
+                    bufferedWriter.write("\",\"");
+                    bufferedWriter.write(String.valueOf(id));
+                }
                 bufferedWriter.write('"');
                 bufferedWriter.newLine();
             }
@@ -104,38 +101,36 @@ public class ItemMode implements IMode {
     }
 
     /**
-     * Writes the string IDs of the given items into a TXT file to the given folder.
+     * Writes the string IDs of the given creatures into a TXT file to the given folder.
      *
-     * @param items        the parsed items
+     * @param creatures    the parsed creatures
      * @param folder       the output folder
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      * @throws IOException if an I/O error occurs
      */
-    private void writeItemStringIdsToFile(Set<Item> items, Path folder, int minInclusive, int maxInclusive) throws
-            IOException {
+    private void writeCreatureStringIdsToFile(Set<Creature> creatures, Path folder, int minInclusive,
+                                              int maxInclusive) throws IOException {
         // Delete the old file and create a new one
         Files.deleteIfExists(folder.resolve(OUTPUT_FILENAME));
         Path file = Files.createFile(folder.resolve(OUTPUT_FILENAME));
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(Files.newBufferedWriter(file))) {
-            for (Item each : items) {
+            for (Creature creature : creatures) {
                 // Write string IDs only if they are in the given range
-                if (each.isGeneralNameInRange(minInclusive, maxInclusive)) {
-                    bufferedWriter.write(String.valueOf(each.getGeneralName()));
+                if (creature.isShortNameInRange(minInclusive, maxInclusive)) {
+                    bufferedWriter.write(String.valueOf(creature.getShortName()));
                     bufferedWriter.newLine();
                 }
-                if (each.isIdentifiedNameInRange(minInclusive, maxInclusive)) {
-                    bufferedWriter.write(String.valueOf(each.getIdentifiedName()));
+                if (creature.isLongNameInRange(minInclusive, maxInclusive)) {
+                    bufferedWriter.write(String.valueOf(creature.getLongName()));
                     bufferedWriter.newLine();
                 }
-                if (each.isGeneralDescriptionInRange(minInclusive, maxInclusive)) {
-                    bufferedWriter.write(String.valueOf(each.getGeneralDescription()));
-                    bufferedWriter.newLine();
-                }
-                if (each.isIdentifiedDescriptionInRange(minInclusive, maxInclusive)) {
-                    bufferedWriter.write(String.valueOf(each.getIdentifiedDescription()));
-                    bufferedWriter.newLine();
+                if (creature.isPertainingStringsInRange(minInclusive, maxInclusive)) {
+                    for (int id : creature.getPertainingStringsinRange(minInclusive, maxInclusive)) {
+                        bufferedWriter.write(String.valueOf(id));
+                        bufferedWriter.newLine();
+                    }
                 }
                 bufferedWriter.newLine();
             }
@@ -145,63 +140,66 @@ public class ItemMode implements IMode {
     /**
      * Removes all string IDs that are not in the given ID range.
      *
+     * @param creatures    the creatures
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      */
-    private void chopItemsToRange(Set<Item> items, int minInclusive, int maxInclusive) {
-        items.removeIf(item -> !item.isInRange(minInclusive, maxInclusive));
+    private void chopCreaturesToRange(Set<Creature> creatures, int minInclusive, int maxInclusive) {
+        creatures.removeIf(c -> !c.isInRange(minInclusive, maxInclusive));
     }
 
     /**
-     * Parses the item structure of all itm files in the given folder. The itm files are searched for all string IDs
-     * that are used in game to display the item.
+     * Parses the creature structure of all cre files in the given folder. The cre files are searched for all string IDs
+     * that are used in game in context of the creature.
      *
      * @param folder the input folder
      * @throws IOException if an I/O error occurs
      */
-    private Set<Item> parseItems(Path folder) throws IOException {
-        Set<Item> result = new TreeSet<>();
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.ITM");
+    private Set<Creature> parseCreatures(Path folder) throws IOException {
+        Set<Creature> result = new TreeSet<>();
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*.CRE");
         List<Path> sortedFiles = new LinkedList<>();
         files.forEach(sortedFiles::add);
         // Sort files alphabetically
         sortedFiles.sort(Comparator.comparing(Path::toString));
         for (Path each : sortedFiles) {
-            System.out.printf("Parse item: %s%n", each.getFileName());
-            // Parse every itm file
-            result.add(parseItem(each));
+            System.out.printf("Parse creature: %s%n", each.getFileName());
+            // Parse every cre file
+            result.add(parseCreature(each));
         }
         return result;
     }
 
     /**
-     * Parses an item structure of a single given itm file.
+     * Parses an creature structure of a single given cre file.
      *
      * @param file the input file
      * @throws IOException if an I/O error occurs
      */
-    private Item parseItem(Path file) throws IOException {
+    private Creature parseCreature(Path file) throws IOException {
         byte[] fileContent = Files.readAllBytes(file);
-        // Allocate a buffer for four integers, each 4 bytes long
-        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
-        // The ITM file is little endian
+        // Allocate a buffer for 102 integers, each 4 bytes long
+        ByteBuffer byteBuffer = ByteBuffer.allocate(408);
+        // The CRE file is little endian
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
         // Read the four string IDs
         byteBuffer.put(fileContent, 8, 4);
         byteBuffer.put(fileContent, 12, 4);
-        byteBuffer.put(fileContent, 80, 4);
-        byteBuffer.put(fileContent, 84, 4);
+        for (int i = 0; i < 100; i++) {
+            byteBuffer.put(fileContent, 164 + 4 * i, 4);
+        }
 
-        // Convert the four string IDs to integers
-        int generalName = byteBuffer.getInt(0);
-        int identifiedName = byteBuffer.getInt(4);
-        int generalDescription = byteBuffer.getInt(8);
-        int identifiedDescription = byteBuffer.getInt(12);
+        // Convert the 102 string IDs to integers
+        int shortName = byteBuffer.getInt(0);
+        int longName = byteBuffer.getInt(4);
+        int[] pertaining = new int[100];
+        for (int i = 0; i < 100; i++) {
+            pertaining[i] = byteBuffer.getInt(8 + i * 4);
+        }
 
-        // Create a new item withe the four string IDs
-        return new Item(file.getFileName().toString(), generalName, identifiedName, generalDescription,
-                identifiedDescription);
+        // Create a new creature with the 102 string IDs
+        return new Creature(file.getFileName().toString(), shortName, longName, pertaining);
     }
 
     /**

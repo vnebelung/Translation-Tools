@@ -19,7 +19,7 @@ import java.util.SortedMap;
  * This class is responsible for parsing a script file. For every string its neighbors are searched and linked to
  * each other so that a flat ID structure can be build.
  */
-public class ScriptStructureParser {
+public class ScriptStructureParser implements IParser {
 
     private final SortedMap<Integer, TranslationString> idsToDialogs;
     private final SortedMap<String, List<Integer>> fileNamesToIds;
@@ -37,13 +37,9 @@ public class ScriptStructureParser {
         this.fileNamesToIds = fileNamesToIds;
     }
 
-    /**
-     * Parses a dialog file and extracts the structure of the contained dialogs.
-     *
-     * @param file the input file
-     */
+    @Override
     public void parse(Path file) {
-        // If the file contains no script IDs it is not in the list and we must return
+        // If the file contains no script IDs, it is not in the list and we must return
         if (fileNamesToIds.get(file.getFileName().toString()) == null) {
             return;
         }
@@ -64,6 +60,16 @@ public class ScriptStructureParser {
                 }
             }
         }
+    }
+
+    @Override
+    public String getAllowedExtension() {
+        return "BAF";
+    }
+
+    @Override
+    public String getType() {
+        return "structure";
     }
 
 }

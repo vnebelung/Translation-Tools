@@ -1,4 +1,4 @@
-package items;
+package item;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -15,7 +15,7 @@ class Item implements Comparable<Item> {
     private String fileName;
 
     /**
-     * Constructs a new item that represents an in-game item with its for string IDs.
+     * Constructs a new item that represents an in-game item with its four string IDs.
      *
      * @param fileName              the item's file name
      * @param generalName           the item's "general name" string ID
@@ -36,7 +36,7 @@ class Item implements Comparable<Item> {
      *
      * @return the "general name" string ID.
      */
-    public int getGeneralName() {
+    int getGeneralName() {
         return generalName;
     }
 
@@ -45,7 +45,7 @@ class Item implements Comparable<Item> {
      *
      * @return the "identified name" string ID.
      */
-    public int getIdentifiedName() {
+    int getIdentifiedName() {
         return identifiedName;
     }
 
@@ -54,7 +54,7 @@ class Item implements Comparable<Item> {
      *
      * @return the "general description" string ID.
      */
-    public int getGeneralDescription() {
+    int getGeneralDescription() {
         return generalDescription;
     }
 
@@ -63,49 +63,59 @@ class Item implements Comparable<Item> {
      *
      * @return the "identified description" string ID.
      */
-    public int getIdentifiedDescription() {
+    int getIdentifiedDescription() {
         return identifiedDescription;
     }
 
     /**
      * Returns whether the "identified description" string ID is in the given range.
      *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
      * @return true if "identified description" is in the given range
      */
-    public boolean isIdentifiedDescriptionInRange(int minInclusive, int maxInclusive) {
+    boolean isIdentifiedDescriptionInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= identifiedDescription && identifiedDescription <= maxInclusive;
     }
 
     /**
      * Returns whether the "identified name" string ID is in the given range.
      *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
      * @return true if "identified name" is in the given range
      */
-    public boolean isIdentifiedNameInRange(int minInclusive, int maxInclusive) {
+    boolean isIdentifiedNameInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= identifiedName && identifiedName <= maxInclusive;
     }
 
     /**
      * Returns whether the "general description" string ID is in the given range.
      *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
      * @return true if "general description" is in the given range
      */
-    public boolean isGeneralDescriptionInRange(int minInclusive, int maxInclusive) {
+    boolean isGeneralDescriptionInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= generalDescription && generalDescription <= maxInclusive;
     }
 
     /**
      * Returns whether the "general name" string ID is in the given range.
      *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
      * @return true if "general name" is in the given range
      */
-    public boolean isGeneralNameInRange(int minInclusive, int maxInclusive) {
+    boolean isGeneralNameInRange(int minInclusive, int maxInclusive) {
         return minInclusive <= generalName && generalName <= maxInclusive;
     }
 
     /**
      * Returns whether all four string IDs are in the given range.
      *
+     * @param minInclusive the minimum string ID, inclusive
+     * @param maxInclusive the maximum string ID, inclusive
      * @return true if all four string IDs are in the given range
      */
     boolean isInRange(int minInclusive, int maxInclusive) {
@@ -118,37 +128,27 @@ class Item implements Comparable<Item> {
         if (isGeneralDescriptionInRange(minInclusive, maxInclusive)) {
             return true;
         }
-        if (isIdentifiedDescriptionInRange(minInclusive, maxInclusive)) {
-            return true;
-        }
-        return false;
+        return isIdentifiedDescriptionInRange(minInclusive, maxInclusive);
     }
 
     /**
-     * Compares this object with the specified object for order.  Returns a
-     * negative integer, zero, or a positive integer as this object is less
-     * than, equal to, or greater than the specified object.
+     * Compares this object with the specified object for order. Returns a negative integer, zero, or a positive integer
+     * as this object is less than, equal to, or greater than the specified object.
      * <p>
      * <p>The implementor must ensure
-     * {@code sgn(x.compareTo(y)) == -sgn(y.compareTo(x))}
-     * for all {@code x} and {@code y}.  (This
-     * implies that {@code x.compareTo(y)} must throw an exception iff
-     * {@code y.compareTo(x)} throws an exception.)
+     * {@code sgn(x.compareTo(y)) == -sgn(y.compareTo(x))} for all {@code x} and {@code y}.  (This implies that {@code
+     * x.compareTo(y)} must throw an exception iff {@code y.compareTo(x)} throws an exception.)
      * <p>
      * <p>The implementor must also ensure that the relation is transitive:
-     * {@code (x.compareTo(y) > 0 && y.compareTo(z) > 0)} implies
-     * {@code x.compareTo(z) > 0}.
+     * {@code (x.compareTo(y) > 0 && y.compareTo(z) > 0)} implies {@code x.compareTo(z) > 0}.
      * <p>
      * <p>Finally, the implementor must ensure that {@code x.compareTo(y)==0}
-     * implies that {@code sgn(x.compareTo(z)) == sgn(y.compareTo(z))}, for
-     * all {@code z}.
+     * implies that {@code sgn(x.compareTo(z)) == sgn(y.compareTo(z))}, for all {@code z}.
      * <p>
      * <p>It is strongly recommended, but <i>not</i> strictly required that
-     * {@code (x.compareTo(y)==0) == (x.equals(y))}.  Generally speaking, any
-     * class that implements the {@code Comparable} interface and violates
-     * this condition should clearly indicate this fact.  The recommended
-     * language is "Note: this class has a natural ordering that is
-     * inconsistent with equals."
+     * {@code (x.compareTo(y)==0) == (x.equals(y))}.  Generally speaking, any class that implements the {@code
+     * Comparable} interface and violates this condition should clearly indicate this fact.  The recommended language is
+     * "Note: this class has a natural ordering that is inconsistent with equals."
      * <p>
      * <p>In the foregoing description, the notation
      * {@code sgn(}<i>expression</i>{@code )} designates the mathematical
@@ -157,11 +157,10 @@ class Item implements Comparable<Item> {
      * <i>expression</i> is negative, zero, or positive, respectively.
      *
      * @param o the object to be compared.
-     * @return a negative integer, zero, or a positive integer as this object
-     * is less than, equal to, or greater than the specified object.
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     * the specified object.
      * @throws NullPointerException if the specified object is null
-     * @throws ClassCastException   if the specified object's type prevents it
-     *                              from being compared to this object.
+     * @throws ClassCastException   if the specified object's type prevents it from being compared to this object.
      */
     @Override
     public int compareTo(Item o) {
@@ -198,7 +197,7 @@ class Item implements Comparable<Item> {
      *
      * @return the file's name
      */
-    public String getFileName() {
+    String getFileName() {
         return fileName;
     }
 }

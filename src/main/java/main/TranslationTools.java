@@ -8,7 +8,8 @@
 package main;
 
 import dialog.DialogStructureMode;
-import items.ItemMode;
+import dialog.creature.CreatureMode;
+import item.ItemMode;
 import status_image.ImageMode;
 
 import java.io.IOException;
@@ -51,16 +52,18 @@ class TranslationTools {
         Map<String, IMode> modes = new HashMap<>();
         modes.put("status", new ImageMode());
         modes.put("dialog", new DialogStructureMode());
-        modes.put("items", new ItemMode());
+        modes.put("item", new ItemMode());
+        modes.put("creatures", new CreatureMode());
 
         if (!modes.containsKey(args[0])) {
             // If the first parameter is not a mode defined above
             System.out.println();
-            System.out.println("Usage: java -jar TranslationTools.jar [status|dialog|items] [options]");
+            System.out.println("Usage: java -jar TranslationTools.jar [status|dialog|items|creatures] [options]");
             System.out.println(
                     "status  = generates or updates a graphic that visualizes the translation status of a project");
-            System.out.println("dialog  = analyzes TLK files and generates dialog structure overviews");
-            System.out.println("items   = extracts string IDs from ITM files");
+            System.out.println("dialog     = analyzes TLK files and generates dialog structure overviews");
+            System.out.println("items      = extracts string IDs from ITM files");
+            System.out.println("creatures  = extracts string IDs from CRE files");
             return;
         }
 

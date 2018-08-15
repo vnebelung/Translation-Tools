@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 /**
  * This class is responsible for parsing a script file and extracting all string IDs.
  */
-public class ScriptContentParser {
+public class ScriptContentParser implements IParser {
 
     private final static Pattern ADDJOURNALENTRY = Pattern.compile("AddJournalEntry\\((\\d+),[^)]+\\) {2}// ([^\\n]+)");
     private final static Pattern DISPLAYSTRINGHEAD =
@@ -53,13 +53,7 @@ public class ScriptContentParser {
         this.fileNamesToIds = fileNamesToIds;
     }
 
-    /**
-     * Parses a script file and extracts all string IDs and internal string IDs. Searches for string IDs and strings in
-     * the given file by searching for "DISPLAYSTRINGHEAD" and "ADDJOURNALENTRY".
-     *
-     * @param file the input file containing a decompiled script
-     * @throws IOException if an exception of some sort has occurred
-     */
+    @Override
     public void parse(Path file) throws IOException {
         // Read the file
         String content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
@@ -127,6 +121,16 @@ public class ScriptContentParser {
         if (!ids.isEmpty()) {
             fileNamesToIds.put(filename, ids);
         }
+    }
+
+    @Override
+    public String getAllowedExtension() {
+        return "BAF";
+    }
+
+    @Override
+    public String getType() {
+        return "content";
     }
 
 }
