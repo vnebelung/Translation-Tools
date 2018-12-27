@@ -36,7 +36,6 @@ import java.util.SortedMap;
  */
 class HtmlCreator {
 
-    final static String OUTPUT_FILENAME = "DialogOverview.html";
     private SortedMap<String, List<Integer>> fileNamesToIds;
     private SortedMap<Integer, TranslationString> idsToDialogs;
 
@@ -54,12 +53,12 @@ class HtmlCreator {
     /**
      * Creates the DOM structure and writes it into an HTML file in the given folder.
      *
-     * @param folder the output folder
+     * @param file the output file
      * @throws ParserConfigurationException if a DocumentBuilder cannot be created which satisfies the configuration
      *                                      requested
      * @throws TransformerException         if an unrecoverable error occurs during the course of the transformation
      */
-    void create(Path folder) throws ParserConfigurationException, TransformerException {
+    void create(Path file) throws ParserConfigurationException, TransformerException {
         // Create a new DOM
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         Document document = documentBuilder.newDocument();
@@ -80,7 +79,7 @@ class HtmlCreator {
         createExample(document);
 
         // Write the DOM to the output folder
-        writeToFile(document, folder);
+        write(document, file);
     }
 
     /**
@@ -299,13 +298,13 @@ class HtmlCreator {
      * Writes a DOM to an HTML file in the given folder.
      *
      * @param document the DOM document
-     * @param folder   the output folder
+     * @param file   the output file
      * @throws TransformerException if an unrecoverable error occurs during the course of the transformation
      */
-    private void writeToFile(Document document, Path folder) throws TransformerException {
+    private void write(Document document, Path file) throws TransformerException {
         // Transform the DOM to an HTML file
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        Result output = new StreamResult(folder.resolve(OUTPUT_FILENAME).toFile());
+        Result output = new StreamResult(file.toFile());
         Source input = new DOMSource(document);
         transformer.transform(input, output);
     }

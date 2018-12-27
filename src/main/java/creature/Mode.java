@@ -1,78 +1,56 @@
-package dialog.creature;
-
-import main.IMode;
+package creature;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This class extracts string IDs from CRE files.
  */
-public class CreatureMode implements IMode {
-
-    private final static String OUTPUT_FILENAME = "CreatureStrings.txt";
-    private final static String OUTPUT_CSV_FILENAME = "CreatureStrings.csv";
+public class Mode {
 
     /**
-     * Invokes the user chosen functionality.
+     * Generates a TXT and a CSV file with all creature strings of CRE files of the game in focus.
      *
-     * @param parameters command line parameters needed for invoking the mode
-     * @throws Exception if an exception has occurred.
+     * @param creFolder the folder path containing the CRE files
+     * @param outTxt    the file path to the output TXT file containing the item string IDs
+     * @param outCsv    the file path to the output CSV file containing the item string IDs
+     * @param from      the minimum string ID (inclusive) * @param to the maximum string ID (inclusive)
+     * @throws IOException if an I/O error has occurred
      */
-    @Override
-    public void invoke(String... parameters) throws Exception {
+    public void invoke(String creFolder, String outTxt, String outCsv, int from, int to) throws IOException {
 
-        // Check if all needed parameters are present
-        Map<String, String> parametersToValues = checkParameters(parameters);
-        if (parametersToValues == null) {
-            System.out.println();
-            System.out.println("Usage: java -jar TranslationTools.jar creatures --folder <arg> --range <arg>-<arg>");
-            System.out.println("--folder <arg>      = path to the folder containing the ITM files");
-            System.out.println("--range <arg>-<arg> = numerical range of string IDs that should be parsed");
-            return;
-        }
-
-        // Parse the input folder and range
-        Path folder = Paths.get(parametersToValues.get("folder"));
-        Pattern range = Pattern.compile("^(\\d+)-(\\d+)$");
-        Matcher rangeMatcher = range.matcher(parametersToValues.get("range"));
-        //noinspection ResultOfMethodCallIgnored
-        rangeMatcher.matches();
-        int rangeMinInclusive = Integer.valueOf(rangeMatcher.group(1));
-        int rangeMaxInclusive = Integer.valueOf(rangeMatcher.group(2));
-
-        Set<Creature> creatures = parseCreatures(folder);
-        chopCreaturesToRange(creatures, rangeMinInclusive, rangeMaxInclusive);
+        Set<Creature> creatures = parseCreatures(Paths.get(creFolder));
+        chopCreaturesToRange(creatures, from, to);
         // Write the creature string IDs into a file
-        writeCreatureStringIdsToFile(creatures, folder, rangeMinInclusive, rangeMaxInclusive);
+        writeCreatureStringIdsTxt(creatures, Paths.get(outTxt), from, to);
         // Write creature string IDs into a CSV file
-        writeCreatureStringIdsToCsvFile(creatures, folder, rangeMinInclusive, rangeMaxInclusive);
+        writeCreatureStringIdsCsv(creatures, Paths.get(outCsv), from, to);
 
-        System.out.printf("Creature strings written to '%s'%n",
-                folder.resolve(OUTPUT_FILENAME).toAbsolutePath().toString());
-        System.out.printf("CSV written to '%s'%n", folder.resolve(OUTPUT_CSV_FILENAME).toAbsolutePath().toString());
+        System.out.printf("Creature strings written to '%s'%n", Paths.get(outTxt).toAbsolutePath().toString());
+        System.out.printf("CSV written to '%s'%n", Paths.get(outCsv).toAbsolutePath().toString());
     }
 
     /**
      * Writes the string IDs of the given creatures into a CSV file to the given folder.
      *
      * @param creatures    the parsed creatures
-     * @param folder       the output folder
+     * @param file         the output file
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      * @throws IOException if an I/O error occurs
      */
-    private void writeCreatureStringIdsToCsvFile(Set<Creature> creatures, Path folder, int minInclusive,
-                                                 int maxInclusive) throws IOException {
+    private void writeCreatureStringIdsCsv(Set<Creature> creatures, Path file, int minInclusive,
+                                           int maxInclusive) throws IOException {
         // Delete the old file and create a new one
-        Files.deleteIfExists(folder.resolve(OUTPUT_CSV_FILENAME));
-        Path file = Files.createFile(folder.resolve(OUTPUT_CSV_FILENAME));
+        Files.deleteIfExists(file);
+        Files.createFile(file);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(Files.newBufferedWriter(file))) {
             bufferedWriter
@@ -104,16 +82,16 @@ public class CreatureMode implements IMode {
      * Writes the string IDs of the given creatures into a TXT file to the given folder.
      *
      * @param creatures    the parsed creatures
-     * @param folder       the output folder
+     * @param file         the output file
      * @param minInclusive the minimum string ID, inclusive
      * @param maxInclusive the maximum string ID, inclusive
      * @throws IOException if an I/O error occurs
      */
-    private void writeCreatureStringIdsToFile(Set<Creature> creatures, Path folder, int minInclusive,
-                                              int maxInclusive) throws IOException {
+    private void writeCreatureStringIdsTxt(Set<Creature> creatures, Path file, int minInclusive,
+                                           int maxInclusive) throws IOException {
         // Delete the old file and create a new one
-        Files.deleteIfExists(folder.resolve(OUTPUT_FILENAME));
-        Path file = Files.createFile(folder.resolve(OUTPUT_FILENAME));
+        Files.deleteIfExists(file);
+        Files.createFile(file);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(Files.newBufferedWriter(file))) {
             for (Creature creature : creatures) {
@@ -200,68 +178,6 @@ public class CreatureMode implements IMode {
 
         // Create a new creature with the 102 string IDs
         return new Creature(file.getFileName().toString(), shortName, longName, pertaining);
-    }
-
-    /**
-     * Check whether all needed command line parameters are present and valid.
-     *
-     * @param parameters the parsed command line parameters
-     * @return the parsed parameters or null in case of an error
-     */
-    private Map<String, String> checkParameters(String... parameters) {
-
-        // Read all given parameters as key => value pairs
-        Map<String, String> result = new HashMap<>((parameters.length + 1) / 2);
-        for (int i = 0; i < parameters.length; i += 2) {
-            // Read key without the -- chars
-            String key = parameters[i].substring(2);
-            // If value is not existent (an odd number of parameters), take an empty string
-            String value = i + 1 < parameters.length ? parameters[i + 1] : "";
-            result.put(key, value);
-        }
-
-        // Check whether -folder is present
-        if (!result.containsKey("folder")) {
-            return null;
-        }
-        // Check whether -folder <arg> is not empty
-        if (result.get("folder").isEmpty()) {
-            return null;
-        }
-        // Check whether folder argument can be parsed
-        try {
-            Path path = Paths.get(result.get("folder"));
-            if (!Files.exists(path)) {
-                return null;
-            }
-        } catch (InvalidPathException ignored) {
-            return null;
-        }
-
-        // Check whether -range is present
-        if (!result.containsKey("range")) {
-            return null;
-        }
-        // Check whether -range <arg> is not empty
-        if (result.get("range").isEmpty()) {
-            return null;
-        }
-        // Check whether range argument can be parsed
-        String[] numbers = result.get("range").split("-");
-        if (numbers.length != 2) {
-            return null;
-        }
-        try {
-            int from = Integer.valueOf(numbers[0]);
-            int to = Integer.valueOf(numbers[1]);
-            if (from > to) {
-                return null;
-            }
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
-
-        return result;
     }
 
 }

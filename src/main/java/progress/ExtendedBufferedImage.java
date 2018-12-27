@@ -12,7 +12,7 @@
  * as published by Sam Hocevar. See the COPYING file for more details.
  */
 
-package status_image;
+package progress;
 
 import java.awt.*;
 import java.awt.color.ColorSpace;

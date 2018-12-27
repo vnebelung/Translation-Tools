@@ -10,13 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>community</groupId>
     <artifactId>translation-tools</artifactId>
-    <version>2.0</version>
+    <version>3</version>
     <dependencies>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.11</version>
-            <scope>test</scope>
+            <groupId>net.prodisfuzz</groupId>
+            <artifactId>simple-command-line-parser</artifactId>
+            <version>4</version>
         </dependency>
     </dependencies>
     <packaging>jar</packaging>
@@ -72,6 +71,4 @@
         </plugins>
         <finalName>TranslationTools</finalName>
     </build>
-
-
 </project>

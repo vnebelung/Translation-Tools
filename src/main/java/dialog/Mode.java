@@ -8,20 +8,20 @@
 package dialog;
 
 import dialog.parser.*;
-import main.IMode;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This class parses TLK files and creates an HTML file that contains dialog structures.
  */
-public class DialogStructureMode implements IMode {
+public class Mode {
 
     private SortedMap<Integer, TranslationString> idsToDialogs = new TreeMap<>();
     private SortedMap<String, Integer> internalIdsToIds = new TreeMap<>();
@@ -45,7 +45,7 @@ public class DialogStructureMode implements IMode {
      * Creates the an HTML document.
      *
      * @param folder the output folder that the HTML will be written to
-     * @throws ParserConfigurationException if a HTML DocumentBuilder cannot be created which satisfies the
+     * @throws ParserConfigurationException if an HTML DocumentBuilder cannot be created which satisfies the
      *                                      configuration requested.
      * @throws TransformerException         if an unrecoverable error occurs during the course of the HTML
      *                                      transformation.
@@ -138,118 +138,45 @@ public class DialogStructureMode implements IMode {
     }
 
     /**
-     * Check whether all needed command line parameters are present and valid.
+     * Generates an HTML file that contains the dialog structure and a TXT file with grouped dialog string IDs of BAF
+     * and D files of the game in focus.
      *
-     * @param parameters the parsed command line parameters
-     * @return the parsed parameters or null in case of an error
+     * @param from      the minimum string ID (inclusive)
+     * @param to        the maximum string ID (inclusive)
+     * @param outTxt    the file path to the output TXT file containing the dialog groups
+     * @param bafFolder the folder path containing the BAF files
+     * @param dFolder   the folder path containing the D files
+     * @param outHtml   the file path to the output HTML file containing the dialog structure
+     * @throws IOException                  if an IO exception has occurred
+     * @throws ParserConfigurationException if an HTML DocumentBuilder cannot be created which satisfies the *
+     *                                      configuration requested.
+     * @throws TransformerException         if an unrecoverable error occurs during the course of the HTML *
+     *                                      transformation.
      */
-    private Map<String, String> checkParameters(String... parameters) {
-
-        // Read all given parameters as key => value pairs
-        Map<String, String> result = new HashMap<>((parameters.length + 1) / 2);
-        for (int i = 0; i < parameters.length; i += 2) {
-            // Read key without the -- chars
-            String key = parameters[i].substring(2);
-            // If value is not existent (an odd number of parameters), take an empty string
-            String value = i + 1 < parameters.length ? parameters[i + 1] : "";
-            result.put(key, value);
-        }
-
-        // Check whether -folder is present
-        if (!result.containsKey("folder")) {
-            return null;
-        }
-        // Check whether -folder <arg> is not empty
-        if (result.get("folder").isEmpty()) {
-            return null;
-        }
-        // Check whether folder argument can be parsed
-        try {
-            Path path = Paths.get(result.get("folder"));
-            if (!Files.exists(path)) {
-                return null;
-            }
-        } catch (InvalidPathException ignored) {
-            return null;
-        }
-
-        // Check whether -range is present
-        if (!result.containsKey("range")) {
-            return null;
-        }
-        // Check whether -range <arg> is not empty
-        if (result.get("range").isEmpty()) {
-            return null;
-        }
-        // Check whether range argument can be parsed
-        String[] numbers = result.get("range").split("-");
-        if (numbers.length != 2) {
-            return null;
-        }
-        try {
-            int from = Integer.valueOf(numbers[0]);
-            int to = Integer.valueOf(numbers[1]);
-            if (from > to) {
-                return null;
-            }
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
-
-        return result;
-    }
-
-    /**
-     * Invokes the user chosen functionality.
-     *
-     * @param parameters command line parameters needed for invoking the mode
-     * @throws Exception if an exception has occurred.
-     */
-    @Override
-    public void invoke(String... parameters) throws Exception {
-
-        // Check if all needed parameters are present
-        Map<String, String> parametersToValues = checkParameters(parameters);
-        if (parametersToValues == null) {
-            System.out.println();
-            System.out.println("Usage: java -jar TranslationTools.jar dialog --folder <arg> --range <arg>-<arg>");
-            System.out.println("--folder <arg>      = path to the folder containing the D files");
-            System.out.println("--range <arg>-<arg> = numerical range of string IDs that should be parsed");
-            return;
-        }
-
-        // Parse the input folder and range
-        Path folder = Paths.get(parametersToValues.get("folder"));
-        Pattern range = Pattern.compile("^(\\d+)-(\\d+)$");
-        Matcher rangeMatcher = range.matcher(parametersToValues.get("range"));
-        //noinspection ResultOfMethodCallIgnored
-        rangeMatcher.matches();
-        int rangeMinInclusive = Integer.valueOf(rangeMatcher.group(1));
-        int rangeMaxInclusive = Integer.valueOf(rangeMatcher.group(2));
+    public void invoke(int from, int to, String bafFolder, String dFolder, String outHtml, String outTxt) throws
+            IOException, TransformerException, ParserConfigurationException {
 
         // Prepare the ID mappings
         prepareMappings();
 
         // Find all string IDs in d files
-        parseFiles(new DialogContentParser(idsToDialogs, internalIdsToIds, fileNamesToIds), folder);
+        parseFiles(new DialogContentParser(idsToDialogs, internalIdsToIds, fileNamesToIds), Paths.get(dFolder));
         // Find all string relations in d files
-        parseFiles(new DialogStructureParser(idsToDialogs, internalIdsToIds), folder);
+        parseFiles(new DialogStructureParser(idsToDialogs, internalIdsToIds), Paths.get(dFolder));
 
         // Find all string IDs in baf files
-        parseFiles(new ScriptContentParser(idsToDialogs, fileNamesToIds), folder);
+        parseFiles(new ScriptContentParser(idsToDialogs, fileNamesToIds), Paths.get(bafFolder));
         // Find all string relations in baf files
-        parseFiles(new ScriptStructureParser(idsToDialogs, fileNamesToIds), folder);
+        parseFiles(new ScriptStructureParser(idsToDialogs, fileNamesToIds), Paths.get(bafFolder));
 
         // Chop string IDs to user defined ID range
-        chopMappingsToRange(rangeMinInclusive, rangeMaxInclusive);
+        chopMappingsToRange(from, to);
         // Create the HTML dialog file
-        createHtml(folder);
+        createHtml(Paths.get(outHtml));
         // Create a string group file
-        createGroups(folder, rangeMinInclusive, rangeMaxInclusive);
+        createGroups(Paths.get(outTxt), from, to);
 
-        System.out.printf("Groups written to '%s'%n",
-                folder.resolve(GroupCreator.OUTPUT_FILENAME).toAbsolutePath().toString());
-        System.out.printf("HTML written to '%s'%n",
-                folder.resolve(HtmlCreator.OUTPUT_FILENAME).toAbsolutePath().toString());
+        System.out.printf("Groups written to '%s'%n", Paths.get(outTxt).toAbsolutePath().toString());
+        System.out.printf("HTML written to '%s'%n", Paths.get(outHtml).toAbsolutePath().toString());
     }
 }

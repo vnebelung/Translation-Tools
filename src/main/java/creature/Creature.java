@@ -1,4 +1,4 @@
-package dialog.creature;
+package creature;
 
 import java.util.Arrays;
 import java.util.Set;

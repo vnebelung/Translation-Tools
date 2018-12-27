@@ -24,7 +24,6 @@ import java.util.*;
  */
 class GroupCreator {
 
-    final static String OUTPUT_FILENAME = "DialogGroups.txt";
     private final int minInclusive;
     private final int maxInclusive;
     private SortedMap<Integer, TranslationString> idsToDialogs;
@@ -46,10 +45,10 @@ class GroupCreator {
     /**
      * Creates the groups and writes them into an TXT file in the given folder.
      *
-     * @param folder the output folder
+     * @param file the output file
      * @throws IOException if an I/O error occurs
      */
-    void create(Path folder) throws IOException {
+    void create(Path file) throws IOException {
         List<Group> groups = new LinkedList<>();
         // Create a group that contains all string IDs that are in the parameter-defined range but not in idsToDialogs
         Group nonDialogScriptGroup = createNonDialogScriptGroup();
@@ -83,9 +82,9 @@ class GroupCreator {
             groups.add(linearizedGroup);
         }
         // Write the groups into a file
-        writeGroupsToFile(groups, folder);
+        writeGroups(groups, file);
         // Add as the last group the non dialog IDs
-        writeNonDialogScriptGroupToFile(nonDialogScriptGroup, folder);
+        writeNonDialogScriptGroup(nonDialogScriptGroup, file);
     }
 
     /**
@@ -134,12 +133,12 @@ class GroupCreator {
      * of a dialog.
      *
      * @param group  the string ID group
-     * @param folder the output folder
+     * @param file the output file
      * @throws IOException if an I/O error occurs
      */
-    private void writeNonDialogScriptGroupToFile(Group group, Path folder) throws IOException {
+    private void writeNonDialogScriptGroup(Group group, Path file) throws IOException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(
-                Files.newBufferedWriter(folder.resolve(OUTPUT_FILENAME), StandardOpenOption.APPEND))) {
+                Files.newBufferedWriter(file, StandardOpenOption.APPEND))) {
             bufferedWriter.newLine();
             bufferedWriter.write("// Group: non dialog IDs, " + group.getIds().size() + " strings");
             bufferedWriter.newLine();
@@ -157,13 +156,13 @@ class GroupCreator {
      * a dialog.
      *
      * @param groups the string ID groups
-     * @param folder the output folder
+     * @param file the output file
      * @throws IOException if an I/O error occurs
      */
-    private void writeGroupsToFile(List<Group> groups, Path folder) throws IOException {
+    private void writeGroups(List<Group> groups, Path file) throws IOException {
         // Delete the old file and create a new one
-        Files.deleteIfExists(folder.resolve(OUTPUT_FILENAME));
-        Path file = Files.createFile(folder.resolve(OUTPUT_FILENAME));
+        Files.deleteIfExists(file);
+        Files.createFile(file);
 
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file)) {
             int count = 1;
