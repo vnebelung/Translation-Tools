@@ -141,13 +141,13 @@ class TranslationTools {
                             (String) subcommand.getParameter("unused-txt").getValue(),
                             (String) subcommand.getParameter("out-png").getValue(),
                             (String) subcommand.getParameter("out-txt").getValue(),
-                            (int) subcommand.getParameter("suggestions").getValue(),
-                            (boolean) subcommand.getParameter("ignore-unused").getValue());
+                            (Integer) subcommand.getParameter("suggestions").getValue(),
+                            (Boolean) subcommand.getParameter("ignore-unused").getValue());
                     break;
                 case "dialogs":
                     dialog.Mode dialogMode = new dialog.Mode();
-                    dialogMode.invoke((int) subcommand.getParameter("string-id-from").getValue(),
-                            (int) subcommand.getParameter("string-id-to").getValue(),
+                    dialogMode.invoke((Integer) subcommand.getParameter("string-id-from").getValue(),
+                            (Integer) subcommand.getParameter("string-id-to").getValue(),
                             (String) subcommand.getParameter("baf-folder").getValue(),
                             (String) subcommand.getParameter("d-folder").getValue(),
                             (String) subcommand.getParameter("out-html").getValue(),
@@ -156,8 +156,8 @@ class TranslationTools {
                 case "items":
                     item.Mode itemMode = new item.Mode();
                     itemMode.invoke((String) subcommand.getParameter("itm-folder").getValue(),
-                            (int) subcommand.getParameter("string-id-from").getValue(),
-                            (int) subcommand.getParameter("string-id-to").getValue(),
+                            (Integer) subcommand.getParameter("string-id-from").getValue(),
+                            (Integer) subcommand.getParameter("string-id-to").getValue(),
                             (String) subcommand.getParameter("out-txt").getValue(),
                             (String) subcommand.getParameter("out-csv").getValue());
                     break;
@@ -166,8 +166,8 @@ class TranslationTools {
                     creatureMode.invoke((String) subcommand.getParameter("cre-folder").getValue(),
                             (String) subcommand.getParameter("out-txt").getValue(),
                             (String) subcommand.getParameter("out-csv").getValue(),
-                            (int) subcommand.getParameter("string-id-from").getValue(),
-                            (int) subcommand.getParameter("string-id-to").getValue());
+                            (Integer) subcommand.getParameter("string-id-from").getValue(),
+                            (Integer) subcommand.getParameter("string-id-to").getValue());
                     break;
             }
         } catch (IOException | TransformerException | ParserConfigurationException e) {
