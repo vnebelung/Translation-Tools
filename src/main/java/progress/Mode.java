@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 public class Mode {
 
     private static final int COLUMN_WIDTH = 10;
+    private static final int LINES_PER_PIXEL = 10;
 
     /**
      * Invokes the user chosen functionality.
@@ -102,24 +103,31 @@ public class Mode {
 
         // Paint new status column
         int newXPosition = newImage.getWidth() - COLUMN_WIDTH;
-        // Counts the strings in the following for loop
-        int count = 0;
-        // Marker that indicates whether all particular 10 strings are translated or not
-        boolean translated = false;
-        for (Map.Entry<Integer, Set<IdState>> each : entries.entrySet()) {
-            // Will be set to the translated flag if count marks the current string as #1 of the 10-block,
-            // will be set to its current value AND the translation flag if count marks the current string as #2-#9
-            // of the 10-block
-            translated = count % 10 == 0 ? each.getValue().contains(IdState.ACCEPTED) :
-                    translated && each.getValue().contains(IdState.ACCEPTED);
-            // Paint the line if it is the tenth string or the last string
-            if (count % 10 == 9 || count == entries.size() - 1) {
-                for (int i = 0; i < COLUMN_WIDTH; i++) {
-                    newImage.setRGB(i + newXPosition, count / 10,
-                            translated ? Color.GREEN.getRGB() : Color.RED.getRGB());
+        // Store the red an green parts of the line's RGB value.
+        int red = 0;
+        int green = 0;
+
+        List<Set<IdState>> states = new ArrayList<>(entries.values());
+        for (int i = 0, mod = 0; i < states.size(); i++, mod = (mod + 1) % LINES_PER_PIXEL) {
+            // Reset to 0 if it is the first line
+            if (mod == 0) {
+                red = 0;
+                green = 0;
+            }
+            // Add 255 to the red or green value
+            if (states.get(i).contains(IdState.ACCEPTED)) {
+                green += 255;
+            } else {
+                red += 255;
+            }
+            // Paint the line if it is the LINES_PER_PIXEL'th string or the last string
+            if (mod == LINES_PER_PIXEL - 1 || i == states.size() - 1) {
+                // Divide through the number of actual lines of this pixel to get the mixed color for this pixel
+                Color color = new Color(red / (mod + 1), green / (mod + 1), 0);
+                for (int j = 0; j < COLUMN_WIDTH; j++) {
+                    newImage.setRGB(j + newXPosition, i / LINES_PER_PIXEL, color.getRGB());
                 }
             }
-            count++;
         }
 
         // Write the new image
