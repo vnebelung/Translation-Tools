@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>community</groupId>
     <artifactId>translation-tools</artifactId>
-    <version>4</version>
+    <version>5</version>
     <dependencies>
         <dependency>
             <groupId>net.prodisfuzz</groupId>

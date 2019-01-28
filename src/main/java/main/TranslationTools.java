@@ -96,7 +96,7 @@ class TranslationTools {
                 "The path of the file to that the TXT file containing the dialog groups will be written."));
         commandLine.getCommand().add(new Subcommand("items",
                 "Generates a CSV an a TXT file with all item strings of ITM files of the game in focus."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("itm-folder",
+        commandLine.getCommand().getSubcommand("items").add(new StringParameter("itm-folder",
                 "The path to the folder that contains all ITM files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
         commandLine.getCommand().getSubcommand("items").add(new IntegerParameter("string-id-from",
