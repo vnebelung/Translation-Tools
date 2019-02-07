@@ -89,7 +89,7 @@ class TranslationTools {
         commandLine.getCommand().getSubcommand("dialogs").add(new IntegerParameter("string-id-from",
                 "The string ID (inclusive) that is the lower bound of IDs that shall be parsed.", 0));
         commandLine.getCommand().getSubcommand("dialogs").add(new IntegerParameter("string-id-to",
-                "The string ID (inclusive) that is the upper bound of IDs that shall be parsed.", Integer.MAX_VALUE));
+                "The string ID (inclusive) that is the upper bound of IDs that shall be parsed."));
         commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("out-html",
                 "The path of the file to that the HTML containing the dialog structure will be written."));
         commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("out-txt",
