@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class DialogContentParser implements IParser {
 
     private final static Pattern BEGIN = Pattern.compile("~ THEN BEGIN (\\d+)");
-    private final static Pattern END = Pattern.compile("END[\\r\\n]");
+    private final static Pattern END = Pattern.compile("[\\r\\n]END[\\r\\n]");
     private final static Pattern SAY = Pattern.compile("SAY #(\\d+) /\\* ~([^~]*)~");
     private final static Pattern REPLY = Pattern.compile("~ THEN REPLY #(\\d+) /\\* ~([^~]*)~");
     private final static Pattern ADDJOURNALENTRY = Pattern.compile("AddJournalEntry\\((\\d+)");
