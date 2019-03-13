@@ -7,11 +7,6 @@
 
 package main;
 
-import commands.Command;
-import commands.Subcommand;
-import parameters.BooleanParameter;
-import parameters.IntegerParameter;
-import parameters.StringParameter;
 import progress.Mode;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -48,126 +43,135 @@ class TranslationTools {
         }
 
         // Prepare all possible modes
-        CommandLine commandLine = new CommandLine();
-        commandLine.createCommand("TranslationTools.jar", "The Translation Tools can assist in translating " +
-                "games that are based on the Infinity engine, like BG:EE or BG:SoD. The tools can extract string " +
-                "IDs and generate dialog structures from Infinity engine files, or can generate statistics about the " +
-                "translation process.");
-        commandLine.getCommand().add(new Subcommand("progress", "Generates a graphic that visualizes" +
+        CommandLine commandLine = new CommandLine("TranslationTools.jar",
+                "The Translation Tools can assist in translating " +
+                        "games that are based on the Infinity engine, like BG:EE or BG:SoD. The tools can extract " +
+                        "string " +
+                        "IDs and generate dialog structures from Infinity engine files, or can generate statistics " +
+                        "about the " + "translation process.");
+
+        Subcommand progress = commandLine.createSubcommand("progress", "Generates a graphic that visualizes" +
                 " the translation progress of a project and stores it into a PNG file, and additionally writes a " +
                 "table with textual information into a TXT file. If the PNG file and/or the TXT table is already " +
-                "existing, they are updated with the current progress data."));
-        commandLine.getCommand().getSubcommand("progress").add(new StringParameter("complete-csv",
+                "existing, they are updated with the current progress data.");
+        progress.add(commandLine.createStringParameter("complete-csv",
                 "The path to the CSV file that contains all strings of a translation project, exported from the " +
                         "online translation tool."));
-        commandLine.getCommand().getSubcommand("progress").add(new StringParameter("out-of-date-csv",
+        progress.add(commandLine.createStringParameter("out-of-date-csv",
                 "The path to the CSV file that contains all out-of-date strings of a translation project, exported " +
                         "from the online translation tool."));
-        commandLine.getCommand().getSubcommand("progress").add(new StringParameter("unused-txt",
+        progress.add(commandLine.createStringParameter("unused-txt",
                 "The path to the TXT file that contains all unused strings of a translation project, exported from " +
                         "NearInfinity with an up-to-date version of the game in focus."));
-        commandLine.getCommand().getSubcommand("progress").add(new StringParameter("out-png",
+        progress.add(commandLine.createStringParameter("out-png",
                 "The path to the PNG file that will contain the visualized progress information. If this file is " +
                         "already present, it will be updated with the current progress data."));
-        commandLine.getCommand().getSubcommand("progress").add(new StringParameter("out-txt",
+        progress.add(commandLine.createStringParameter("out-txt",
                 "The path to the TXT file that will contain the textual progress information. If this file is " +
                         "already present, it will be updated with the current progress data."));
-        commandLine.getCommand().getSubcommand("progress").add(new BooleanParameter("ignore-unused", "When set to " +
+        progress.add(commandLine.createBooleanParameter("ignore-unused", "When set to " +
                 "true, it is assumed that unused strings are ignored during the translation. This will affect the " +
-                "textual progress information.", false));
-        commandLine.getCommand().getSubcommand("progress").add(new IntegerParameter("suggestions",
+                "textual progress information.").withDefaultValue(false));
+        progress.add(commandLine.createIntegerParameter("suggestions",
                 "The number of " + "suggestions as displayed in the translation tool."));
-        commandLine.getCommand().add(new Subcommand("dialogs",
+        commandLine.getCommand().add(progress);
+
+        Subcommand dialogs = commandLine.createSubcommand("dialogs",
                 "Generates an HTML file that contains the dialog structure and a TXT file with grouped dialog string " +
-                        "IDs of BAF and D files of the game in focus."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("baf-folder",
+                        "IDs of BAF and D files of the game in focus.");
+        dialogs.add(commandLine.createStringParameter("baf-folder",
                 "The path to the folder that contains all BAF files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("d-folder",
+        dialogs.add(commandLine.createStringParameter("d-folder",
                 "The path to the folder that contains all D files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new IntegerParameter("string-id-from",
-                "The string ID (inclusive) that is the lower bound of IDs that shall be parsed.", 0));
-        commandLine.getCommand().getSubcommand("dialogs").add(new IntegerParameter("string-id-to",
+        dialogs.add(commandLine.createIntegerParameter("string-id-from",
+                "The string ID (inclusive) that is the lower bound of IDs that shall be parsed.").withDefaultValue(0));
+        dialogs.add(commandLine.createIntegerParameter("string-id-to",
                 "The string ID (inclusive) that is the upper bound of IDs that shall be parsed."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("out-html",
+        dialogs.add(commandLine.createStringParameter("out-html",
                 "The path of the file to that the HTML containing the dialog structure will be written."));
-        commandLine.getCommand().getSubcommand("dialogs").add(new StringParameter("out-txt",
+        dialogs.add(commandLine.createStringParameter("out-txt",
                 "The path of the file to that the TXT file containing the dialog groups will be written."));
-        commandLine.getCommand().add(new Subcommand("items",
-                "Generates a CSV an a TXT file with all item strings of ITM files of the game in focus."));
-        commandLine.getCommand().getSubcommand("items").add(new StringParameter("itm-folder",
+        commandLine.getCommand().add(dialogs);
+
+        Subcommand items = commandLine.createSubcommand("items",
+                "Generates a CSV an a TXT file with all item strings of ITM files of the game in focus.");
+        items.add(commandLine.createStringParameter("itm-folder",
                 "The path to the folder that contains all ITM files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
-        commandLine.getCommand().getSubcommand("items").add(new IntegerParameter("string-id-from",
-                "The string ID (inclusive) that is the lower bound of IDs that shall be parsed.", 0));
-        commandLine.getCommand().getSubcommand("items").add(new IntegerParameter("string-id-to",
-                "The string ID (inclusive) that is the upper bound of IDs that shall be parsed.", Integer.MAX_VALUE));
-        commandLine.getCommand().getSubcommand("items").add(new StringParameter("out-txt",
+        items.add(commandLine.createIntegerParameter("string-id-from",
+                "The string ID (inclusive) that is the lower bound of IDs that shall be parsed.").withDefaultValue(0));
+        items.add(commandLine.createIntegerParameter("string-id-to",
+                "The string ID (inclusive) that is the upper bound of IDs that shall be parsed.")
+                .withDefaultValue(Integer.MAX_VALUE));
+        items.add(commandLine.createStringParameter("out-txt",
                 "The path to the TXT file that will contain all string IDs of the parsed items."));
-        commandLine.getCommand().getSubcommand("items").add(new StringParameter("out-csv",
+        items.add(commandLine.createStringParameter("out-csv",
                 "The path to the CSV file that will contain all string IDs of the parsed items."));
-        commandLine.getCommand().add(new Subcommand("creatures",
-                "Generates a CSV an a TXT file with all creature strings of CRE files of the game in focus."));
-        commandLine.getCommand().getSubcommand("creatures").add(new StringParameter("cre-folder",
+        commandLine.getCommand().add(items);
+
+        Subcommand creatures = commandLine.createSubcommand("creatures",
+                "Generates a CSV an a TXT file with all creature strings of CRE files of the game in focus.");
+        creatures.add(commandLine.createStringParameter("cre-folder",
                 "The path to the folder that contains all CRE files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
-        commandLine.getCommand().getSubcommand("creatures").add(new IntegerParameter("string-id-from",
+        creatures.add(commandLine.createIntegerParameter("string-id-from",
                 "The string ID (inclusive) that is the lower bound of IDs that shall be parsed. The default value is " +
-                        "0.", 0));
-        commandLine.getCommand().getSubcommand("creatures").add(new IntegerParameter("string-id-to",
+                        "0.").withDefaultValue(0));
+        creatures.add(commandLine.createIntegerParameter("string-id-to",
                 "The string ID (inclusive) that is the upper bound of IDs that shall be parsed. The default value is " +
-                        "4,294,967,296.", Integer.MAX_VALUE));
-        commandLine.getCommand().getSubcommand("creatures").add(new StringParameter("out-txt",
+                        "4,294,967,296.").withDefaultValue(Integer.MAX_VALUE));
+        creatures.add(commandLine.createStringParameter("out-txt",
                 "The path to the TXT file that will contain all string IDs of the parsed creatures."));
-        commandLine.getCommand().getSubcommand("creatures").add(new StringParameter("out-csv",
+        creatures.add(commandLine.createStringParameter("out-csv",
                 "The path to the CSV file that will contain all string IDs of the parsed creatures."));
+        commandLine.getCommand().add(creatures);
 
-        Subcommand subcommand;
+        ParsedCommand parsedCommand;
         try {
-            Command command = commandLine.parse(args);
-            subcommand = command.getSubcommands().iterator().next();
+            parsedCommand = commandLine.parse(args);
         } catch (ParameterException e) {
             System.out.println(e.getMessage());
             return;
         }
 
         try {
-            switch (subcommand.getName()) {
+            switch (parsedCommand.getSubcommand().getName()) {
                 case "progress":
                     Mode progressMode = new Mode();
-                    progressMode.invoke((String) subcommand.getParameter("complete-csv").getValue(),
-                            (String) subcommand.getParameter("out-of-date-csv").getValue(),
-                            (String) subcommand.getParameter("unused-txt").getValue(),
-                            (String) subcommand.getParameter("out-png").getValue(),
-                            (String) subcommand.getParameter("out-txt").getValue(),
-                            (Integer) subcommand.getParameter("suggestions").getValue(),
-                            (Boolean) subcommand.getParameter("ignore-unused").getValue());
+                    progressMode.invoke(parsedCommand.getSubcommand().getStringParameter("complete-csv").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-of-date-csv").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("unused-txt").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-png").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-txt").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("suggestions").getValue(),
+                            parsedCommand.getSubcommand().getBooleanParameter("ignore-unused").getValue());
                     break;
                 case "dialogs":
                     dialog.Mode dialogMode = new dialog.Mode();
-                    dialogMode.invoke((Integer) subcommand.getParameter("string-id-from").getValue(),
-                            (Integer) subcommand.getParameter("string-id-to").getValue(),
-                            (String) subcommand.getParameter("baf-folder").getValue(),
-                            (String) subcommand.getParameter("d-folder").getValue(),
-                            (String) subcommand.getParameter("out-html").getValue(),
-                            (String) subcommand.getParameter("out-txt").getValue());
+                    dialogMode.invoke(parsedCommand.getSubcommand().getIntegerParameter("string-id-from").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-to").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("baf-folder").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("d-folder").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-html").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-txt").getValue());
                     break;
                 case "items":
                     item.Mode itemMode = new item.Mode();
-                    itemMode.invoke((String) subcommand.getParameter("itm-folder").getValue(),
-                            (Integer) subcommand.getParameter("string-id-from").getValue(),
-                            (Integer) subcommand.getParameter("string-id-to").getValue(),
-                            (String) subcommand.getParameter("out-txt").getValue(),
-                            (String) subcommand.getParameter("out-csv").getValue());
+                    itemMode.invoke(parsedCommand.getSubcommand().getStringParameter("itm-folder").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-from").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-to").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-txt").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-csv").getValue());
                     break;
                 case "creatures":
                     creature.Mode creatureMode = new creature.Mode();
-                    creatureMode.invoke((String) subcommand.getParameter("cre-folder").getValue(),
-                            (String) subcommand.getParameter("out-txt").getValue(),
-                            (String) subcommand.getParameter("out-csv").getValue(),
-                            (Integer) subcommand.getParameter("string-id-from").getValue(),
-                            (Integer) subcommand.getParameter("string-id-to").getValue());
+                    creatureMode.invoke(parsedCommand.getSubcommand().getStringParameter("cre-folder").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-txt").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-csv").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-from").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-to").getValue());
                     break;
             }
         } catch (IOException | TransformerException | ParserConfigurationException e) {
