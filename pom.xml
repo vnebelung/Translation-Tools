@@ -10,12 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>community</groupId>
     <artifactId>translation-tools</artifactId>
-    <version>6-RELEASE</version>
+    <version>7</version>
     <dependencies>
         <dependency>
             <groupId>net.prodisfuzz</groupId>
             <artifactId>simple-command-line-parser</artifactId>
-            <version>8</version>
+            <version>LATEST</version>
         </dependency>
     </dependencies>
     <packaging>jar</packaging>

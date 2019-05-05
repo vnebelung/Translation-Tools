@@ -96,7 +96,7 @@ class TranslationTools {
         commandLine.getCommand().add(dialogs);
 
         Subcommand items = commandLine.createSubcommand("items",
-                "Generates a CSV an a TXT file with all item strings of ITM files of the game in focus.");
+                "Generates a CSV and a TXT file with all item strings of ITM files of the game in focus.");
         items.add(commandLine.createStringParameter("itm-folder",
                 "The path to the folder that contains all ITM files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
@@ -112,7 +112,7 @@ class TranslationTools {
         commandLine.getCommand().add(items);
 
         Subcommand creatures = commandLine.createSubcommand("creatures",
-                "Generates a CSV an a TXT file with all creature strings of CRE files of the game in focus.");
+                "Generates a CSV and a TXT file with all creature strings of CRE files of the game in focus.");
         creatures.add(commandLine.createStringParameter("cre-folder",
                 "The path to the folder that contains all CRE files of a game, exported from NearInfinity " +
                         "with an up-to-date version of the game in focus."));
@@ -127,6 +127,20 @@ class TranslationTools {
         creatures.add(commandLine.createStringParameter("out-csv",
                 "The path to the CSV file that will contain all string IDs of the parsed creatures."));
         commandLine.getCommand().add(creatures);
+
+        Subcommand tables = commandLine.createSubcommand("tables",
+                "Generates aTXT file with all table string IDs of " + "2DA files of the game in focus.");
+        tables.add(commandLine.createStringParameter("2da-folder", "The path to the folder that contains all 2DA " +
+                "files of a game, exported from NearInfinity with an up-to-date version of the game in focus."));
+        tables.add(commandLine.createIntegerParameter("string-id-from",
+                "The string ID (inclusive) that is the lower bound of IDs that shall be parsed. The default value is " +
+                        "0.").withDefaultValue(0));
+        tables.add(commandLine.createIntegerParameter("string-id-to",
+                "The string ID (inclusive) that is the upper bound of IDs that shall be parsed. The default value is " +
+                        "4,294,967,296.").withDefaultValue(Integer.MAX_VALUE));
+        tables.add(commandLine.createStringParameter("out-txt",
+                "The path to the TXT file that will contain all string IDs of the parsed tables."));
+        commandLine.getCommand().add(tables);
 
         ParsedCommand parsedCommand;
         try {
@@ -170,6 +184,13 @@ class TranslationTools {
                     creatureMode.invoke(parsedCommand.getSubcommand().getStringParameter("cre-folder").getValue(),
                             parsedCommand.getSubcommand().getStringParameter("out-txt").getValue(),
                             parsedCommand.getSubcommand().getStringParameter("out-csv").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-from").getValue(),
+                            parsedCommand.getSubcommand().getIntegerParameter("string-id-to").getValue());
+                    break;
+                case "tables":
+                    table.Mode tableMode = new table.Mode();
+                    tableMode.invoke(parsedCommand.getSubcommand().getStringParameter("2da-folder").getValue(),
+                            parsedCommand.getSubcommand().getStringParameter("out-txt").getValue(),
                             parsedCommand.getSubcommand().getIntegerParameter("string-id-from").getValue(),
                             parsedCommand.getSubcommand().getIntegerParameter("string-id-to").getValue());
                     break;

@@ -123,11 +123,11 @@ public class Mode {
      * @param maxInclusive the maximum string ID, inclusive
      */
     private void chopCreaturesToRange(Set<Creature> creatures, int minInclusive, int maxInclusive) {
-        creatures.removeIf(c -> !c.isInRange(minInclusive, maxInclusive));
+        creatures.removeIf(creature -> !creature.isInRange(minInclusive, maxInclusive));
     }
 
     /**
-     * Parses the creature structure of all cre files in the given folder. The cre files are searched for all string IDs
+     * Parses the creature structure of all CRE files in the given folder. The CRE files are searched for all string IDs
      * that are used in game in context of the creature.
      *
      * @param folder the input folder
@@ -149,7 +149,7 @@ public class Mode {
     }
 
     /**
-     * Parses an creature structure of a single given cre file.
+     * Parses an creature structure of a single given CRE file.
      *
      * @param file the input file
      * @throws IOException if an I/O error occurs
