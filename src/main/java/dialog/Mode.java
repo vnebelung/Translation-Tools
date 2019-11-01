@@ -84,8 +84,7 @@ public class Mode {
                 iterator.remove();
             }
         }
-        for (Iterator<Map.Entry<String, List<Integer>>> iterator = fileNamesToIds.entrySet().iterator();
-             iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<String, List<Integer>>> iterator = fileNamesToIds.entrySet().iterator(); iterator.hasNext(); ) {
             // Remove all entries from fileNamesToIds with IDs that are removed from idsToDialogs
             Map.Entry<String, List<Integer>> entry = iterator.next();
             entry.getValue().removeIf(i -> !idsToDialogs.containsKey(i));
@@ -103,8 +102,10 @@ public class Mode {
      * @throws IOException if an I/O error occurs
      */
     private void parseFiles(IParser parser, Path folder) throws IOException {
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*." + parser.getAllowedExtension());
-        int totalNumFiles = countFiles(folder, parser.getAllowedExtension());
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, path -> Files.isRegularFile(path) &&
+                parser.getAllowedExtensions()
+                        .contains(path.getFileName().toString().substring(path.getFileName().toString().lastIndexOf('.') + 1)));
+        int totalNumFiles = countFiles(folder, parser.getAllowedExtensions());
         int i = 1;
         for (Path file : files) {
             System.out.printf("Parse %s %d/%d: %s%n", parser.getType(), i, totalNumFiles, file.getFileName());
@@ -123,13 +124,14 @@ public class Mode {
     /**
      * Counts the files with the given file extension in the given folder
      *
-     * @param folder        the input folder
-     * @param fileExtension the file extension
-     * @return the number of files with the given file extension
+     * @param folder         the input folder
+     * @param fileExtensions the file extensions
+     * @return the number of files with the given file extensions
      * @throws IOException if an I/O error occurs
      */
-    private int countFiles(Path folder, String fileExtension) throws IOException {
-        DirectoryStream<Path> files = Files.newDirectoryStream(folder, "*." + fileExtension);
+    private int countFiles(Path folder, Set<String> fileExtensions) throws IOException {
+        DirectoryStream<Path> files = Files.newDirectoryStream(folder, path -> Files.isRegularFile(path) && fileExtensions
+                .contains(path.getFileName().toString().substring(path.getFileName().toString().lastIndexOf('.') + 1)));
         int result = 0;
         for (Path ignored : files) {
             result++;
@@ -153,8 +155,8 @@ public class Mode {
      * @throws TransformerException         if an unrecoverable error occurs during the course of the HTML *
      *                                      transformation.
      */
-    public void invoke(int from, int to, String bafFolder, String dFolder, String outHtml, String outTxt) throws
-            IOException, TransformerException, ParserConfigurationException {
+    public void invoke(int from, int to, String bafFolder, String dFolder, String outHtml, String outTxt) throws IOException,
+            TransformerException, ParserConfigurationException {
 
         // Prepare the ID mappings
         prepareMappings();
@@ -168,6 +170,10 @@ public class Mode {
         parseFiles(new ScriptContentParser(idsToDialogs, fileNamesToIds), Paths.get(bafFolder));
         // Find all string relations in baf files
         parseFiles(new ScriptStructureParser(idsToDialogs, fileNamesToIds), Paths.get(bafFolder));
+        // Find all string IDs in d files
+        parseFiles(new ScriptContentParser(idsToDialogs, fileNamesToIds), Paths.get(dFolder));
+        // Find all string relations in d files
+        parseFiles(new ScriptStructureParser(idsToDialogs, fileNamesToIds), Paths.get(dFolder));
 
         // Chop string IDs to user defined ID range
         chopMappingsToRange(from, to);

@@ -63,8 +63,8 @@ public class ScriptStructureParser implements IParser {
     }
 
     @Override
-    public String getAllowedExtension() {
-        return "BAF";
+    public Set<String> getAllowedExtensions() {
+        return Set.of("BAF", "d");
     }
 
     @Override

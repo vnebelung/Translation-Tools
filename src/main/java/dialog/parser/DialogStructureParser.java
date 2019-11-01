@@ -10,9 +10,10 @@ package dialog.parser;
 import dialog.TranslationString;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,15 +51,15 @@ public class DialogStructureParser implements IParser {
     @Override
     public void parse(Path file) throws IOException {
         // Read the file
-        String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+        String fileContent = Files.readString(file);
         // Now search for string IDs
         parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
                 fileContent);
     }
 
     @Override
-    public String getAllowedExtension() {
-        return "d";
+    public Set<String> getAllowedExtensions() {
+        return Collections.singleton("d");
     }
 
     @Override
@@ -102,7 +103,7 @@ public class DialogStructureParser implements IParser {
         //noinspection ResultOfMethodCallIgnored
         sayMatcher.find();
         // Parse the corresponding string ID
-        int id = Integer.valueOf(sayMatcher.group(1));
+        int id = Integer.parseInt(sayMatcher.group(1));
         // Split the dialog block into dialog lines
         String[] entries = content.split("[\\r\\n] {2}");
         for (String each : entries) {
@@ -125,7 +126,7 @@ public class DialogStructureParser implements IParser {
         Matcher replyMatcher = REPLY.matcher(line);
         if (replyMatcher.find()) {
             // Parse the corresponding string ID
-            int id = Integer.valueOf(replyMatcher.group(1));
+            int id = Integer.parseInt(replyMatcher.group(1));
             // Store the occurrence as a child
             idsToDialogs.get(parentId).addChild(id);
             idsToDialogs.get(id).addParent(parentId);
@@ -153,7 +154,7 @@ public class DialogStructureParser implements IParser {
         Matcher journalMatcher = JOURNAL.matcher(line);
         if (journalMatcher.find()) {
             // Parse the corresponding string ID
-            int id = Integer.valueOf(journalMatcher.group(1));
+            int id = Integer.parseInt(journalMatcher.group(1));
             // Store the occurrence as a child
             idsToDialogs.get(parentId).addChild(id);
             idsToDialogs.get(id).addParent(parentId);
@@ -163,7 +164,7 @@ public class DialogStructureParser implements IParser {
         Matcher addJournalEntryMatcher = ADDJOURNALENTRY.matcher(line);
         if (addJournalEntryMatcher.find()) {
             // Parse the corresponding string ID
-            int id = Integer.valueOf(addJournalEntryMatcher.group(1));
+            int id = Integer.parseInt(addJournalEntryMatcher.group(1));
             // Store the occurrence as a child
             idsToDialogs.get(parentId).addChild(id);
             idsToDialogs.get(id).addParent(parentId);

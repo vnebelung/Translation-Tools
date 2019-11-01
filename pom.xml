@@ -10,12 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>community</groupId>
     <artifactId>translation-tools</artifactId>
-    <version>7</version>
+    <version>9</version>
     <dependencies>
         <dependency>
             <groupId>net.prodisfuzz</groupId>
             <artifactId>simple-command-line-parser</artifactId>
-            <version>LATEST</version>
+            <version>8</version>
         </dependency>
     </dependencies>
     <packaging>jar</packaging>
@@ -30,12 +30,13 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>12</release>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.1.1
+                </version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

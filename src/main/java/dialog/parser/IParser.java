@@ -2,6 +2,7 @@ package dialog.parser;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
 
 public interface IParser {
 
@@ -14,11 +15,11 @@ public interface IParser {
     void parse(Path file) throws IOException;
 
     /**
-     * Returns the allowed file extension of the files that should be parsed by this parser.
+     * Returns the allowed file extensions of the files that should be parsed by this parser.
      *
-     * @return the allowed file extension
+     * @return the allowed file extensions
      */
-    String getAllowedExtension();
+    Set<String> getAllowedExtensions();
 
     /**
      * Returns the parser type, that is either 'content' if the parser scans the files for plain string IDs or

@@ -17,12 +17,9 @@ package dialog.parser;
 import dialog.TranslationString;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,7 +57,7 @@ public class DialogContentParser implements IParser {
     @Override
     public void parse(Path file) throws IOException {
         // Read the file
-        String fileContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+        String fileContent = Files.readString(file);
         // Read the internal file name and use it as part of the internal ID for every string in this file
         // Now search for string IDs
         parseBegin(file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')),
@@ -68,8 +65,8 @@ public class DialogContentParser implements IParser {
     }
 
     @Override
-    public String getAllowedExtension() {
-        return "d";
+    public Set<String> getAllowedExtensions() {
+        return Collections.singleton("d");
     }
 
     @Override
@@ -119,7 +116,7 @@ public class DialogContentParser implements IParser {
         //noinspection ResultOfMethodCallIgnored
         sayMatcher.find();
         // Parse the corresponding string ID and the internal ID
-        int id = Integer.valueOf(sayMatcher.group(1));
+        int id = Integer.parseInt(sayMatcher.group(1));
         String internalId = blockId;
         // Parse the corresponding string text
         TranslationString dialogString =
@@ -133,7 +130,7 @@ public class DialogContentParser implements IParser {
         Matcher replyMatcher = REPLY.matcher(content);
         for (int i = 0; replyMatcher.find(); i++) {
             // Parse the corresponding string ID and the internal ID
-            id = Integer.valueOf(replyMatcher.group(1));
+            id = Integer.parseInt(replyMatcher.group(1));
             internalId = blockId + '.' + i;
             // Parse the corresponding string text
             dialogString = TranslationString.create(replyMatcher.group(2), TranslationString.Type.DIALOG, filename);
@@ -149,7 +146,7 @@ public class DialogContentParser implements IParser {
         Matcher addJournalEntryMatcher = ADDJOURNALENTRY.matcher(content);
         while (addJournalEntryMatcher.find()) {
             // Parse the corresponding string ID and the internal ID
-            id = Integer.valueOf(addJournalEntryMatcher.group(1));
+            id = Integer.parseInt(addJournalEntryMatcher.group(1));
             internalId = blockId + ".Journal." + i;
             // Parse the corresponding string text
             dialogString = TranslationString
@@ -163,7 +160,7 @@ public class DialogContentParser implements IParser {
         // Search for all occurrences of "JOURNAL"
         Matcher journalMatcher = JOURNAL.matcher(content);
         while (journalMatcher.find()) {
-            id = Integer.valueOf(journalMatcher.group(1));
+            id = Integer.parseInt(journalMatcher.group(1));
             internalId = blockId + ".Journal." + i;
             // Parse the corresponding string text
             dialogString = TranslationString.create(journalMatcher.group(2), TranslationString.Type.JOURNAL, filename);
